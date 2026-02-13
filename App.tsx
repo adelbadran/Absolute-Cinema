@@ -35,6 +35,9 @@ const App: React.FC = () => {
   });
   
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Ref to track if I am host, usable inside stale network callbacks
+  const isHostRef = useRef(false);
 
   // --- Network Handling ---
   useEffect(() => {
@@ -69,11 +72,20 @@ const App: React.FC = () => {
       case 'END_TURN':
         setGameState(prev => {
            const lastHint = prev.hints[prev.hints.length - 1];
+           // Prevent duplicate hints
            if (lastHint && lastHint.playerId === msg.payload.playerId && lastHint.round === prev.currentRound) {
                return prev;
            }
+           
            const newHints = [...prev.hints, { playerId: msg.payload.playerId, round: prev.currentRound, text: msg.payload.text }];
-           return { ...prev, hints: newHints };
+           const tempState = { ...prev, hints: newHints };
+
+           // CRITICAL FIX: If I am Host, I must calculate the next turn immediately
+           if (isHostRef.current) {
+               return advanceTurn(tempState);
+           }
+
+           return tempState;
         });
         break;
       case 'SUBMIT_VOTE':
@@ -96,6 +108,11 @@ const App: React.FC = () => {
   // --- Host Logic Loop ---
   const myPlayer = gameState.players.find(p => p.id === myPlayerId);
   const isHost = myPlayer?.isHost || false;
+
+  // Sync ref
+  useEffect(() => {
+      isHostRef.current = isHost;
+  }, [isHost]);
 
   useEffect(() => {
     if (!isHost) return;

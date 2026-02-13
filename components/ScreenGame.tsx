@@ -16,8 +16,10 @@ interface ScreenGameProps {
 
 export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, onEndTurn, onReady }) => {
   const [showWord, setShowWord] = useState(false);
-  const [showRoleReveal, setShowRoleReveal] = useState(true);
+  // Initialize showRoleReveal based on phase to prevent flash on reconnect/reload if game is running
+  const [showRoleReveal, setShowRoleReveal] = useState(gameState.phase === GamePhase.ROLE_REVEAL);
   const [showNewRoundGift, setShowNewRoundGift] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const myPlayer = gameState.players.find(p => p.id === myPlayerId);
   const isMyTurn = gameState.currentTurnPlayerId === myPlayerId;
@@ -26,6 +28,11 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
   const isReady = gameState.readyPlayers.includes(myPlayerId);
   const waitingCount = gameState.players.length - gameState.readyPlayers.length;
   
+  // Reset submitting state when turn changes
+  useEffect(() => {
+      setIsSubmitting(false);
+  }, [gameState.currentTurnPlayerId]);
+
   // Resolve Role Info
   const roleKey = myPlayer?.specialRole || 'NORMAL';
   const roleInfo = SPECIAL_ROLES_INFO[roleKey as keyof typeof SPECIAL_ROLES_INFO];
@@ -113,12 +120,12 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
       }
   }, [isMyTurn]);
 
-  // Ensure Role Reveal shows up when phase changes to GAME_ROUND, but allows dismissal
+  // Ensure Role Reveal is hidden when Game Round starts
   useEffect(() => {
-    if (gameState.phase === GamePhase.GAME_ROUND && gameState.currentRound === 1) {
-        // Just for initial transition, we might want to ensure role reveal is hidden if we came from strict wait state
-        // But logic below handles "If Phase is ROLE_REVEAL, FORCE show".
-        // This effect is mostly for reconnect logic or mid-game checking.
+    if (gameState.phase === GamePhase.GAME_ROUND) {
+        setShowRoleReveal(false);
+    } else if (gameState.phase === GamePhase.ROLE_REVEAL) {
+        setShowRoleReveal(true);
     }
   }, [gameState.phase]);
 
@@ -132,6 +139,8 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
   }, [gameState.currentRound, roleKey]);
 
   const handleEndTurnClick = () => {
+      if (isSubmitting) return;
+      setIsSubmitting(true);
       sounds.vibrateSuccess();
       onEndTurn("تم ✅");
   };
@@ -324,10 +333,17 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
                     onClick={handleEndTurnClick} 
                     variant="primary" 
                     fullWidth
+                    disabled={isSubmitting}
                     className="py-6 shadow-[0_0_40px_rgba(220,38,38,0.5)] text-2xl border-t-4 border-red-500 active:scale-95 transition-transform"
                 >
-                    <Check size={32} />
-                    قولت التلميح (تمام)
+                    {isSubmitting ? (
+                        <Loader2 className="animate-spin" size={32} />
+                    ) : (
+                        <>
+                            <Check size={32} />
+                            قولت التلميح (تمام)
+                        </>
+                    )}
                 </Button>
             </div>
         ) : (
