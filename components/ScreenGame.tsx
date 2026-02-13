@@ -115,10 +115,7 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
   useEffect(() => {
     if (gameState.phase === GamePhase.ROLE_REVEAL) {
         setShowRoleReveal(true);
-        const timer = setTimeout(() => {
-            setShowRoleReveal(false);
-        }, 5000); 
-        return () => clearTimeout(timer);
+        // REMOVED AUTO-TIMEOUT. User must click ready.
     }
   }, [gameState.phase]);
 
@@ -288,7 +285,7 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
       </div>
 
       {/* 3. Footer Action */}
-      <div className="w-full mt-4 pb-4">
+      <div className="w-full mt-4 pb-4 relative z-30">
         {isMyTurn ? (
             <div className="w-full animate-enter">
                 <Button 

@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Player, VotePayload } from '../types';
 import { Button } from './Button';
-import { Skull, AlertTriangle, Crosshair, BadgeCheck, Users, Check, ArrowRight, Ban, CheckCircle2 } from 'lucide-react';
+import { Skull, AlertTriangle, Crosshair, BadgeCheck, Users, Check, ArrowRight, Ban, CheckCircle2, Undo2 } from 'lucide-react';
 import { sounds } from '../services/sound';
+import { ConfirmModal } from './ConfirmModal';
 
 interface ScreenVoteProps {
   players: Player[];
@@ -16,18 +17,25 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
   const [selectedOutsider, setSelectedOutsider] = useState<string | null>(null);
   const [selectedTeammate, setSelectedTeammate] = useState<string | null>(null); // null string or actual ID
   const [isNoTeammate, setIsNoTeammate] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const myPlayer = players.find(p => p.id === myPlayerId);
-  const otherPlayers = players.filter(p => p.id !== myPlayerId);
   
-  // Players to show in list:
-  // Step 1: All players (INCLUDING SELF - Strategy!)
-  // Step 2: All players EXCEPT self (cannot be your own teammate) AND except the one selected as Outsider
-  const availableToVote = step === 1 
+  // Display Logic:
+  // Step 1: All players (Strategy: you can vote yourself as outsider)
+  // Step 2: All players EXCEPT self (Can't be your own teammate). 
+  //         Note: We keep the 'selectedOutsider' visible but disabled to avoid confusion.
+  const displayedPlayers = step === 1 
     ? players 
-    : otherPlayers.filter(p => p.id !== selectedOutsider);
+    : players.filter(p => p.id !== myPlayerId);
 
   const handleSelect = (playerId: string) => {
+    // Prevent selecting the person marked as outsider in step 2
+    if (step === 2 && playerId === selectedOutsider) {
+        sounds.vibrateError();
+        return;
+    }
+
     sounds.vibrateClick();
     if (step === 1) {
         setSelectedOutsider(playerId);
@@ -48,16 +56,44 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
       setStep(2);
   };
 
-  const handleConfirm = () => {
+  const handleBack = () => {
+      sounds.vibrateClick();
+      setStep(1);
+      // Optional: clear teammate selection when going back? 
+      // setSelectedTeammate(null); 
+      // setIsNoTeammate(false);
+      // Let's keep it for convenience in case they just wanted to check.
+  };
+
+  const handleInitialSubmit = () => {
+    if (selectedOutsider && (selectedTeammate || isNoTeammate)) {
+        sounds.vibrateClick();
+        setShowConfirm(true);
+    }
+  };
+
+  const handleFinalConfirm = () => {
     if (selectedOutsider && (selectedTeammate || isNoTeammate)) {
         sounds.vibrateSuccess();
         onVote({ outsiderId: selectedOutsider, teammateId: isNoTeammate ? null : selectedTeammate });
     }
   };
 
+  const getPlayerName = (id: string | null) => players.find(p => p.id === id)?.name || "---";
+
   return (
     <div className={`flex flex-col h-full p-4 animate-fade-in max-w-md mx-auto bg-gradient-to-b ${step === 1 ? 'from-red-950/30' : 'from-blue-950/30'} to-black transition-colors duration-500`}>
       
+      <ConfirmModal
+        isOpen={showConfirm}
+        title="مراجعة التصويت"
+        message={`انت اخترت:\n🛑 الدخيل: ${getPlayerName(selectedOutsider)}\n🤝 صاحبك: ${isNoTeammate ? "مليش صاحب (أنا الدخيل)" : getPlayerName(selectedTeammate)}\n\nمتأكد؟ لا يمكن تغيير التصويت بعد ذلك.`}
+        confirmText="اعتمد التصويت ✅"
+        cancelText="لحظة هراجع"
+        onConfirm={handleFinalConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
+
       {/* Header */}
       <div className="text-center my-4 relative">
         <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 blur-[50px] rounded-full ${step === 1 ? 'bg-red-600/20' : 'bg-blue-600/20'}`}></div>
@@ -111,20 +147,25 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
         )}
 
         <div className="grid grid-cols-2 gap-3 content-start">
-            {availableToVote.map((p) => {
+            {displayedPlayers.map((p) => {
                 const isSelected = (step === 1 ? selectedOutsider : selectedTeammate) === p.id;
-                
+                const isMarkedAsOutsider = step === 2 && p.id === selectedOutsider;
+
                 return (
                     <button
                         key={p.id}
                         onClick={() => handleSelect(p.id)}
+                        disabled={isMarkedAsOutsider}
                         className={`
                             relative p-4 rounded-xl border-2 transition-all duration-300 flex flex-col items-center gap-2 overflow-hidden group
                             ${isSelected 
                                 ? (step === 1 
                                     ? 'bg-red-900/80 border-red-500 ring-2 ring-red-600 ring-offset-2 ring-offset-black shadow-[0_0_40px_rgba(220,38,38,0.6)] scale-105 z-10' 
                                     : 'bg-blue-900/80 border-blue-500 ring-2 ring-blue-600 ring-offset-2 ring-offset-black shadow-[0_0_40px_rgba(37,99,235,0.6)] scale-105 z-10')
-                                : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/80 grayscale-[0.5] hover:grayscale-0'
+                                : (isMarkedAsOutsider 
+                                    ? 'bg-zinc-900/20 border-zinc-800 opacity-50 cursor-not-allowed grayscale' 
+                                    : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/80 grayscale-[0.5] hover:grayscale-0'
+                                  )
                             }
                         `}
                     >
@@ -143,6 +184,13 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
                              <div className={`absolute top-2 right-2 p-1.5 rounded-full ${step === 1 ? 'bg-red-600' : 'bg-blue-600'} text-white shadow-lg animate-enter z-20`}>
                                 {step === 1 ? <Crosshair size={14} /> : <CheckCircle2 size={14} />}
                              </div>
+                        )}
+                        
+                        {/* Marked As Outsider Overlay */}
+                        {isMarkedAsOutsider && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-30 pointer-events-none">
+                                <span className="text-red-500 font-bold text-xs rotate-[-12deg] border-2 border-red-500 px-2 py-1 rounded bg-black/80">اخترته دخيل</span>
+                            </div>
                         )}
 
                         {/* Avatar */}
@@ -170,31 +218,42 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
 
       {/* Action Footer */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/95 to-transparent flex justify-center z-20 pointer-events-none">
-        <div className="w-full max-w-md pointer-events-auto">
+        <div className="w-full max-w-md pointer-events-auto flex gap-3">
+             
+             {step === 2 && (
+                 <Button
+                    onClick={handleBack}
+                    variant="secondary"
+                    className="flex-[1] flex items-center justify-center"
+                 >
+                    <Undo2 size={24} />
+                 </Button>
+             )}
+
             {step === 1 ? (
                 <Button 
                     fullWidth 
                     onClick={handleNext} 
                     disabled={!selectedOutsider}
                     variant="danger" 
-                    className="animate-pop py-4"
+                    className="animate-pop py-4 flex-[4]"
                 >
-                   <span className="flex items-center gap-2 text-xl">
+                   <span className="flex items-center justify-center gap-2 text-xl">
                        <ArrowRight size={24} />
-                       اخترت الدخيل، اللي بعده
+                       اخترت الدخيل
                    </span>
                 </Button>
             ) : (
                 <Button 
                     fullWidth 
-                    onClick={handleConfirm} 
+                    onClick={handleInitialSubmit} 
                     disabled={!selectedTeammate && !isNoTeammate}
                     variant="primary" 
-                    className="animate-pop py-4 bg-blue-600 hover:bg-blue-700 border-blue-500 shadow-blue-900/40"
+                    className="animate-pop py-4 bg-blue-600 hover:bg-blue-700 border-blue-500 shadow-blue-900/40 flex-[4]"
                 >
-                   <span className="flex items-center gap-2 text-xl">
+                   <span className="flex items-center justify-center gap-2 text-xl">
                        <Check size={24} />
-                       تأكيد الاختيارات
+                       مراجعة التصويت
                    </span>
                 </Button>
             )}

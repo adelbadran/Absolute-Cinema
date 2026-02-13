@@ -544,7 +544,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-screen bg-transparent text-zinc-100 overflow-hidden flex flex-col font-cairo">
+    <div className="h-[100dvh] w-screen bg-transparent text-zinc-100 overflow-hidden flex flex-col font-cairo">
       <div className="fixed inset-0 pointer-events-none">
           <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-red-900/10 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-20%] right-[-20%] w-[50%] h-[50%] bg-zinc-900/20 rounded-full blur-[120px]" />
