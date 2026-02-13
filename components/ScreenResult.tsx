@@ -2,7 +2,7 @@
 import React from 'react';
 import { Player, GameState } from '../types';
 import { Button } from './Button';
-import { Crown, AlertTriangle, VenetianMask, Users, Smile, Laugh } from 'lucide-react';
+import { Crown, AlertTriangle, VenetianMask, Users, Smile, Laugh, CheckCircle2, XCircle, Drama } from 'lucide-react';
 import { SPECIAL_ROLES_INFO } from '../constants';
 
 interface ScreenResultProps {
@@ -17,25 +17,25 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
   const isOutsiderWin = winners.some(p => p.isOutsider);
   const joker = gameState.players.find(p => p.specialRole === 'JOKER');
   
-  // Players who are not outsider
-  const majorityPlayers = gameState.players.filter(p => !p.isOutsider);
   const sortedPlayers = [...gameState.players].sort((a, b) => b.score - a.score);
 
-  // --- Logic to see who was "Executed" (Received most votes) ---
+  // Check if ACTOR won
+  const actorWin = winners.some(p => p.specialRole === 'ACTOR');
+
+  // --- Logic to see who was "Executed" (Received most votes as Outsider) ---
   let maxVotes = 0;
   let executedPlayerId: string | null = null;
   const voteCounts: Record<string, number> = {};
 
-  Object.entries(gameState.votes).forEach(([voterId, votedId]) => {
-      // Calculate weight based on Mayor role
-      const voter = gameState.players.find(p => p.id === voterId);
-      const weight = (voter?.specialRole === 'MAYOR') ? 2 : 1;
+  Object.entries(gameState.votes).forEach(([voterId, votePayload]) => {
+      // Standard weight 1 for all votes now that Mayor is removed
+      const weight = 1;
       
-      voteCounts[votedId] = (voteCounts[votedId] || 0) + weight;
+      voteCounts[votePayload.outsiderId] = (voteCounts[votePayload.outsiderId] || 0) + weight;
       
-      if (voteCounts[votedId] > maxVotes) {
-          maxVotes = voteCounts[votedId];
-          executedPlayerId = votedId;
+      if (voteCounts[votePayload.outsiderId] > maxVotes) {
+          maxVotes = voteCounts[votePayload.outsiderId];
+          executedPlayerId = votePayload.outsiderId;
       }
   });
 
@@ -49,10 +49,19 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
   };
 
   return (
-    <div className="flex flex-col h-full p-4 animate-fade-in max-w-md mx-auto overflow-y-auto pb-20">
+    <div className="flex flex-col h-full p-4 animate-fade-in max-w-md mx-auto overflow-y-auto pb-20 relative">
       
+      {/* Actor Win Special Effect */}
+      {actorWin && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+               <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-pink-500/5 to-transparent"></div>
+               <Drama className="absolute top-10 right-4 text-pink-500/20 animate-bounce" size={40} />
+               <Drama className="absolute bottom-20 left-4 text-pink-500/20 animate-bounce delay-700" size={40} />
+          </div>
+      )}
+
       {/* Header Result */}
-      <div className="text-center my-6">
+      <div className="text-center my-6 relative z-10">
         <div className="inline-block p-4 rounded-full bg-zinc-900 mb-4 shadow-xl border border-zinc-800">
             {isOutsiderWin ? <VenetianMask size={64} className="text-red-600 animate-bounce" /> : <Crown size={64} className="text-yellow-500 animate-bounce" />}
         </div>
@@ -62,7 +71,7 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
                 <h1 className="text-5xl font-black mb-1 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-800 drop-shadow-[0_2px_10px_rgba(220,38,38,0.8)] uppercase">
                     ABSOLUTE<br/>CINEMA
                 </h1>
-                <p className="text-red-300 font-bold text-lg">✋🤚 سينما عبثية ✋🤚</p>
+                <p className="text-red-300 font-bold text-lg">✋🤚 الدخيل هرب منكم ✋🤚</p>
                 
                 {jokerWasExecuted && (
                     <div className="mt-4 p-2 bg-yellow-900/30 border border-yellow-600/50 rounded-lg animate-pulse">
@@ -74,7 +83,7 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
                 
                 {!jokerWasExecuted && executedPlayerId && executedPlayerId !== outsider?.id && (
                      <div className="mt-4 p-2 bg-zinc-800 rounded-lg text-zinc-400 text-sm">
-                        قتلتوا <span className="text-white font-bold">{executedPlayer?.name}</span> بالغلط يا ظلمة!
+                        شكيتوا في <span className="text-white font-bold">{executedPlayer?.name}</span> بالغلط يا ظلمة!
                      </div>
                 )}
             </div>
@@ -83,37 +92,21 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
                 <h1 className="text-4xl font-black mb-2 tracking-tight text-green-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.4)]">
                     مسكنا الدخيل 👮‍♂️
                 </h1>
-                <p className="text-zinc-400 font-medium">التيم كسب الجولة</p>
+                <p className="text-zinc-400 font-medium">الناس الصاحية كسبت</p>
             </div>
         )}
       </div>
 
       {/* The Reveal Section */}
-      <div className="space-y-4 mb-8">
+      <div className="space-y-4 mb-8 relative z-10">
           
-          {/* Joker Reveal (If exists) */}
-          {joker && (
-              <div className={`rounded-xl p-4 border relative overflow-hidden ${jokerWasExecuted ? 'bg-gradient-to-r from-yellow-900/40 to-black border-yellow-500/50' : 'bg-zinc-900 border-zinc-800'}`}>
-                  <div className="flex items-center gap-4 relative z-10">
-                      <div className="text-3xl bg-black/50 rounded-full p-2">{SPECIAL_ROLES_INFO.JOKER.emoji}</div>
-                      <div>
-                          <p className="text-yellow-500 text-[10px] font-bold uppercase tracking-wider mb-0.5">المخادع (الطرف الثالث)</p>
-                          <h2 className="text-xl font-bold text-white">{joker.name}</h2>
-                          <p className="text-xs text-zinc-400 mt-1">
-                              {jokerWasExecuted ? "نجح في مهمته وخد الأصوات كلها!" : "فشل إنه يخليكم تشكوا فيه."}
-                          </p>
-                      </div>
-                  </div>
-              </div>
-          )}
-
           {/* Outsider Reveal */}
           <div className="bg-gradient-to-r from-red-900/40 to-black rounded-2xl p-5 border border-red-500/30 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-3 opacity-10"><AlertTriangle size={80} /></div>
             <div className="flex items-center gap-4 relative z-10">
                 <div className="text-5xl bg-black/30 rounded-full p-2">{outsider?.avatar}</div>
                 <div>
-                    <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-1">الدخيل كان</p>
+                    <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-1">الدخيل (الفريق C) كان</p>
                     <h2 className="text-2xl font-bold text-white">{outsider?.name}</h2>
                     <div className="flex items-center gap-2 mt-2">
                         <span className="text-zinc-400 text-xs">كلمته:</span>
@@ -123,56 +116,103 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
             </div>
           </div>
 
-          {/* Majority Word Reveal */}
-          <div className="bg-gradient-to-r from-zinc-900 to-black rounded-xl p-4 border border-zinc-800 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-3 opacity-5"><Users size={60} /></div>
-              <div className="relative z-10">
-                  <p className="text-xs text-zinc-500 mb-2 flex items-center gap-1 uppercase tracking-widest"><Users size={12}/> كلمة باقي التيم</p>
-                  <div className="flex items-center justify-between">
-                      <p className="text-white font-black text-2xl">{gameState.majorityWord}</p>
-                      <div className="flex -space-x-2 space-x-reverse overflow-hidden py-1">
-                          {majorityPlayers.map(p => (
-                              <div key={p.id} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-sm border border-zinc-700 shadow-md relative" title={p.name}>
-                                  {p.avatar}
-                                  {/* Small badge for special role */}
-                                  {getRoleEmoji(p) && (
-                                      <div className="absolute -top-2 -right-1 text-[10px] bg-black rounded-full w-4 h-4 flex items-center justify-center border border-zinc-600">
-                                          {getRoleEmoji(p)}
-                                      </div>
-                                  )}
+          {/* Teams Reveal */}
+          <div className="grid grid-cols-1 gap-3">
+              {/* Team A */}
+              <div className="bg-zinc-900/50 rounded-xl p-3 border border-zinc-800">
+                  <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs text-zinc-500 uppercase font-bold">تيم (A) - {gameState.majorityWord}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                      {gameState.players.filter(p => p.role === 'A').map(p => (
+                          <div key={p.id} className="flex items-center gap-2 bg-black/30 px-2 py-1 rounded-lg">
+                              <span>{p.avatar}</span>
+                              <span className="text-sm font-bold">{p.name}</span>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+
+              {/* Team B */}
+              {gameState.players.some(p => p.role === 'B') && (
+                  <div className="bg-zinc-900/50 rounded-xl p-3 border border-zinc-800">
+                      <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs text-zinc-500 uppercase font-bold">تيم (B) - {gameState.teamBWord}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                          {gameState.players.filter(p => p.role === 'B').map(p => (
+                              <div key={p.id} className="flex items-center gap-2 bg-black/30 px-2 py-1 rounded-lg">
+                                  <span>{p.avatar}</span>
+                                  <span className="text-sm font-bold">{p.name}</span>
                               </div>
                           ))}
                       </div>
                   </div>
-              </div>
+              )}
+
+              {/* Team D (Large Groups) */}
+              {gameState.players.some(p => p.role === 'D') && (
+                  <div className="bg-zinc-900/50 rounded-xl p-3 border border-zinc-800">
+                      <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs text-zinc-500 uppercase font-bold">تيم (D) - {gameState.teamDWord}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                          {gameState.players.filter(p => p.role === 'D').map(p => (
+                              <div key={p.id} className="flex items-center gap-2 bg-black/30 px-2 py-1 rounded-lg">
+                                  <span>{p.avatar}</span>
+                                  <span className="text-sm font-bold">{p.name}</span>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+              )}
           </div>
       </div>
 
-      {/* Leaderboard */}
-      <div className="flex-1 bg-zinc-900/30 rounded-2xl p-4 border border-zinc-800/50">
-        <h3 className="text-sm font-bold mb-4 text-zinc-400 uppercase tracking-widest">لوحة الشرف</h3>
+      {/* Leaderboard & Voting Stats */}
+      <div className="flex-1 bg-zinc-900/30 rounded-2xl p-4 border border-zinc-800/50 relative z-10">
+        <h3 className="text-sm font-bold mb-4 text-zinc-400 uppercase tracking-widest">تحليل الأداء</h3>
         <div className="space-y-3">
-            {sortedPlayers.map((p, idx) => (
-                <div key={p.id} className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                        <span className={`text-sm font-bold w-6 text-center ${idx === 0 ? 'text-yellow-500' : 'text-zinc-600'}`}>#{idx + 1}</span>
-                        <span className="text-2xl group-hover:scale-110 transition-transform relative">
-                            {p.avatar}
-                            {getRoleEmoji(p) && <span className="absolute -bottom-1 -right-1 text-[10px]">{getRoleEmoji(p)}</span>}
-                        </span>
-                        <div className="flex flex-col">
-                            <span className={`font-bold text-sm ${gameState.winners.includes(p.id) ? 'text-white' : 'text-zinc-400'}`}>{p.name}</span>
-                            {gameState.winners.includes(p.id) && <span className="text-[10px] text-yellow-500">كسب الجولة</span>}
+            {sortedPlayers.map((p, idx) => {
+                const myVote = gameState.votes[p.id];
+                const teammateVoteId = myVote?.teammateId;
+                const votedTeammate = gameState.players.find(tp => tp.id === teammateVoteId);
+                const foundTeammate = votedTeammate && votedTeammate.role === p.role && votedTeammate.id !== p.id;
+                const isActor = p.specialRole === 'ACTOR';
+                
+                return (
+                    <div key={p.id} className={`flex flex-col bg-zinc-900/50 rounded-xl p-3 ${isActor && winners.includes(p) ? 'border border-pink-500/30 shadow-sm shadow-pink-900/20' : ''}`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <span className={`text-sm font-bold w-6 text-center ${idx === 0 ? 'text-yellow-500' : 'text-zinc-600'}`}>#{idx + 1}</span>
+                                <span className="text-xl">{p.avatar}</span>
+                                <span className="font-bold text-sm text-white">{p.name}</span>
+                                {p.isOutsider && <span className="text-[10px] bg-red-900/50 text-red-400 px-1 rounded">دخيل</span>}
+                                {isActor && <span className="text-[10px] bg-pink-900/50 text-pink-400 px-1 rounded">ممثل</span>}
+                            </div>
+                            <span className="font-bold text-white bg-zinc-800 px-2 py-1 rounded text-sm border border-zinc-700">{p.score} نقطة</span>
                         </div>
+                        
+                        {!p.isOutsider && (
+                            <div className="flex items-center gap-4 text-[10px] text-zinc-500 px-8">
+                                <div className="flex items-center gap-1">
+                                    <span>صاحبه:</span>
+                                    {foundTeammate ? (
+                                        <span className="text-green-500 flex items-center gap-1 font-bold"><CheckCircle2 size={10} /> كشفه ({votedTeammate?.name})</span>
+                                    ) : (
+                                        <span className="text-red-500 flex items-center gap-1"><XCircle size={10} /> {votedTeammate?.name || "مفيش"}</span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <span className="font-bold text-white bg-zinc-800 px-3 py-1 rounded-lg border border-zinc-700 min-w-[3rem] text-center">{p.score}</span>
-                </div>
-            ))}
+                );
+            })}
         </div>
       </div>
 
       {isHost && (
-        <div className="mt-8">
+        <div className="mt-8 relative z-10">
             <Button fullWidth onClick={onRestart} className="py-4 text-lg">
                 لعبة كمان؟ 🔄
             </Button>

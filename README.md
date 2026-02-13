@@ -4,53 +4,74 @@
 > **"مين الدخيل؟ ولا إحنا اللي مش فاهمين؟"**
 > *(Who is the outsider? Or are we just confused?)*
 
-**Absolute Cinema** is a chaos-inducing, local multiplayer social deduction party game designed specifically for the Egyptian dialect and culture.
+**Absolute Cinema** is a chaos-inducing, **ONLINE** multiplayer social deduction party game designed specifically for the Egyptian dialect and culture.
 
 ---
 
-## ✨ Why Absolute Cinema?
+## ✨ Features
 
-- **🔌 True Offline Multiplayer:** Play anywhere using a single Wi-Fi network or Hotspot. No internet required.
+- **🌐 Play Anywhere (Online):** Connect via the internet! One person hosts, sends the code, and everyone joins from their own homes (or while sitting together).
 - **🇪🇬 100% Masry:** A massive word bank covering Egyptian food, places, and daily life situations.
-- **🎭 The A/B/C Mechanic:** Players are split into two similar groups (A & B) plus one Outsider (C). Confusion is guaranteed!
-- **🃏 Special Roles:** To spice things up, teammates might get secret roles:
-  - **🤐 The Mute (الصامت):** Can only use Emojis.
-  - **🤡 The Joker (المخادع):** Acts suspicious on purpose.
-  - **🤠 The Mayor (العمدة):** Their vote counts double.
-- **🎨 Premium UX:** A dark-themed "Netflix-style" interface with smooth animations and haptic feedback.
+- **🎭 The Team Mechanic:** Players are split into two teams (A & B) plus one Outsider (C). You don't know your team until you start playing!
+- **🧠 Advanced Voting:** You must identify the Outsider AND find your secret teammate.
+- **🎁 Round Gifts (Special Roles):** Roles are not permanent! You might get a special "Gift Role" for just one round.
+- **🎨 Premium UX:** A dark-themed "Netflix-style" interface with smooth animations.
 
 ---
 
-## 🕹️ Game Rules
+## 🕹️ Game Rules (Detailed)
 
-1.  **The Roles:**
-    - **Team A (Majority):** Share the same word.
-    - **Team B (Outsider):** Has a different but related word.
-    - **Special Sub-Roles:** Randomly assigned to Team A players to create chaos.
+### 1. Setup
+- Needs an **ODD** number of players (5, 7, 9...).
+- The game randomly splits players:
+    - **Team A:** Gets Word 1.
+    - **Team B:** Gets Word 2 (Similar to Word 1).
+    - **Outsider (C):** Gets Word 3 (Different).
 
-2.  **The Gameplay:**
-    - Players take turns giving a **one-word hint**.
-    - **Goal:** Find your team vs the Outsider.
-    - **The Twist:** You don't know if you are in the majority or the minority until hints start flying!
+### 2. The Rounds
+- Players take turns giving a **one-word hint** about their secret word.
+- **Goal:** Figure out who has the same word as you (Your Team) and who is the Outsider.
+- **Twist:** Since words A and B are similar (e.g., "Koshary" vs "Pasta"), it's very hard to distinguish your team from the other team!
 
-3.  **Voting:**
-    - After 3 rounds, vote for who you think the Outsider is.
-    - If the Outsider is caught, the Team wins.
-    - If the Outsider survives, it's **Absolute Cinema** ✋🤚.
+### 🎁 Special Roles (Round Gifts)
+Every round, random players might get a special role active for **that round only**:
+- **🤐 The Mute (الصامت):** Gets SKIPPED. Cannot speak or hint at all this round.
+- **🤡 The Joker (المخادع):** Wants to be voted out! If people vote for them, they gain bonus points.
+- **🎭 The Actor (الممثل):** Must deliver their hint with a specific emotion/acting style.
+
+### 3. Voting Phase (Crucial!)
+Voting happens in two steps:
+
+**Step 1: Who is the Outsider?**
+- Vote for the person you think is alone (The Outsider).
+- **Strategy:** If you realize *YOU* are the Outsider, you can vote for yourself!
+
+**Step 2: Who is your Teammate?**
+- Select one person you trust is on your team (A or B).
+- **"No Teammate" Option:** If you think you are the Outsider, you must select **"أنا الدخيل / مليش صاحب"**.
+
+### 4. Scoring
+- **Innocent (Team A/B):**
+    - **+2** if the Outsider is caught.
+    - **+2** if you correctly identify a Teammate.
+    - **-2** (Penalty) if you select "No Teammate" incorrectly.
+- **Outsider (Team C):**
+    - **+5** if you survive (not caught).
+    - **+3** (Bonus) if you correctly select "No Teammate" (Self-awareness).
+- **Joker Bonus:**
+    - **+2** for every vote received against them (if they had the Joker role at any point).
 
 ---
 
 ## 📱 How to Play
 
-1.  One player starts as **Host**.
-2.  Others join via the **4-digit Room Code**.
-3.  The game assigns roles secretly.
-4.  Watch the **Turn Indicator** 🫵 at the top to know when to speak.
-5.  Use the chat box to send your hint.
-6.  Vote at the end!
+1.  One player clicks **"إنشاء روم جديدة"** (Host).
+2.  Share the **4-digit Room Code** with friends via WhatsApp/Messenger.
+3.  Friends select **"دخول روم موجودة"** and enter the code.
+4.  Once everyone is in, the Host starts the game.
 
 ---
 
 <div align="center">
-  <p>Made with ❤️, ☕, and a lot of noise in Egypt.</p>
+  <p>Made with ❤️, ☕, and a lot of chaos.</p>
 </div>

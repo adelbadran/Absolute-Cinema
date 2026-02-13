@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Player, GameConfig } from '../types';
 import { Button } from './Button';
-import { Copy, Users, LogOut, Settings, Timer, Hash } from 'lucide-react';
+import { Copy, Users, LogOut, Settings, Timer, Hash, Sparkles } from 'lucide-react';
 
 interface ScreenLobbyProps {
   roomCode: string;
@@ -57,8 +57,12 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                     className="w-full flex justify-between items-center p-4 text-zinc-300 hover:bg-zinc-800/50 transition-colors"
                 >
                     <span className="flex items-center gap-2 font-bold"><Settings size={18} /> إعدادات الروم</span>
-                    <span className="text-xs bg-black px-2 py-1 rounded text-zinc-400 border border-zinc-800">
-                        {config.maxRounds} جولات | {config.roundDurationBase}ث
+                    <span className="text-xs bg-black px-2 py-1 rounded text-zinc-400 border border-zinc-800 flex items-center gap-1">
+                        <span>{config.maxRounds} جولات</span>
+                        <span className="text-zinc-600">|</span>
+                        <span>{config.roundDurationBase}ث</span>
+                        <span className="text-zinc-600">|</span>
+                        <span>{config.includeSpecialRoles ? "أدوار خاصة ✅" : "بدون أدوار ❌"}</span>
                     </span>
                 </button>
                 
@@ -71,7 +75,7 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                                     <Hash size={16} /> عدد الجولات
                                 </label>
                                 <div className="flex gap-2">
-                                    {[1, 3, 5].map(num => (
+                                    {[3, 5, 7].map(num => (
                                         <button 
                                             key={num}
                                             onClick={() => onUpdateSettings({ ...config, maxRounds: num })}
@@ -89,7 +93,7 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                                     <Timer size={16} /> زمن التفكير (أول جولة)
                                 </label>
                                 <div className="flex gap-2">
-                                    {[15, 20, 30, 45].map(sec => (
+                                    {[5, 7, 10, 12].map(sec => (
                                         <button 
                                             key={sec}
                                             onClick={() => onUpdateSettings({ ...config, roundDurationBase: sec })}
@@ -98,6 +102,27 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                                             {sec}ث
                                         </button>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Special Roles Toggle */}
+                            <div>
+                                <label className="flex items-center gap-2 text-sm text-zinc-400 mb-2">
+                                    <Sparkles size={16} /> أدوار إضافية (مخادع، صامت، ممثل)
+                                </label>
+                                <div className="flex gap-2">
+                                     <button 
+                                        onClick={() => onUpdateSettings({ ...config, includeSpecialRoles: true })}
+                                        className={`flex-1 py-2 rounded-lg font-bold border transition-all ${config.includeSpecialRoles ? 'bg-purple-600 border-purple-500 text-white' : 'bg-black border-zinc-800 text-zinc-500 hover:border-zinc-500'}`}
+                                     >
+                                        مفعلة ✅
+                                     </button>
+                                     <button 
+                                        onClick={() => onUpdateSettings({ ...config, includeSpecialRoles: false })}
+                                        className={`flex-1 py-2 rounded-lg font-bold border transition-all ${!config.includeSpecialRoles ? 'bg-zinc-600 border-zinc-500 text-white' : 'bg-black border-zinc-800 text-zinc-500 hover:border-zinc-500'}`}
+                                     >
+                                        ملغية ❌
+                                     </button>
                                 </div>
                             </div>
                         </div>
@@ -148,6 +173,7 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                 <div className="mt-2 text-xs text-zinc-500 flex justify-center gap-4">
                     <span>{config.maxRounds} جولات</span>
                     <span>{config.roundDurationBase} ثانية</span>
+                    <span>{config.includeSpecialRoles ? "أدوار خاصة" : "كلاسيك"}</span>
                 </div>
             </div>
             )}

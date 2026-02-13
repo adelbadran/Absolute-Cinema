@@ -170,7 +170,7 @@ export const ScreenHome: React.FC<ScreenHomeProps> = ({ onHost, onJoin, onTutori
                 <div className="border-b border-zinc-800 pb-4 mb-2">
                     <input
                         type="text"
-                        placeholder="اكتب اسم الشهرة..."
+                        placeholder="اسمك إيه يا مدير؟"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl text-white text-center text-lg p-3 outline-none focus:border-red-600 transition-colors placeholder-zinc-600 font-bold"

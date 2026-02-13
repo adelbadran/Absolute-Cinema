@@ -9,7 +9,7 @@ export enum GamePhase {
   TUTORIAL = 'TUTORIAL'
 }
 
-export type SpecialRole = 'NORMAL' | 'MUTE' | 'JOKER' | 'MAYOR';
+export type SpecialRole = 'NORMAL' | 'MUTE' | 'JOKER' | 'OUTSIDER' | 'ACTOR';
 
 export interface Player {
   id: string;
@@ -18,31 +18,43 @@ export interface Player {
   avatar: string;
   score: number;
   word?: string; // Only visible locally or revealed at end
-  role?: 'A' | 'B' | 'C'; // A (Majority), B (Outsider)
+  role?: 'A' | 'B' | 'C' | 'D'; // Extended to include D
   isOutsider?: boolean;
-  specialRole?: SpecialRole; // New field for sub-roles
+  specialRole?: SpecialRole; // Current round role
+  hadSpecialRole?: boolean; // Track if they already got a gift role
+  wasJoker?: boolean; // Track if they ever held the Joker role
 }
 
 export interface GameConfig {
   maxRounds: number;
   roundDurationBase: number; // Base seconds for round 1
+  includeSpecialRoles: boolean; // Toggle for Special Roles
+}
+
+export interface VotePayload {
+    outsiderId: string;
+    teammateId: string | null; // Null means "I have no teammate / I am the outsider"
 }
 
 export interface GameState {
   roomCode: string;
   phase: GamePhase;
   players: Player[];
-  config: GameConfig; // New settings object
+  config: GameConfig;
   currentRound: number;
   currentTurnPlayerId: string | null;
+  turnOrder: string[]; // Fixed array of Player IDs to guarantee order
+  turnIndex: number; // Current index in the turnOrder array
   timer: number;
-  hints: { playerId: string; hint: string; round: number }[];
-  votes: Record<string, string>; // VoterID -> VotedPlayerID (Outsider Vote)
-  winners: string[]; // IDs of winners
-  wordPack: { A: string; B: string; C: string } | null;
-  usedWordPackIndices: number[]; // Track used words to avoid repetition
-  majorityWord?: string; // Explicitly store which word was majority
-  outsiderWord?: string; // Explicitly store which word was outsider
+  hints: { playerId: string; round: number; text: string }[]; // Added text field
+  votes: Record<string, VotePayload>; // VoterID -> {outsiderId, teammateId}
+  winners: string[];
+  wordPack: { A: string; B: string; C: string; D: string } | null;
+  usedWordPackIndices: number[];
+  majorityWord?: string; // Team A
+  outsiderWord?: string; // Team C
+  teamBWord?: string; // Team B
+  teamDWord?: string; // Team D
 }
 
 // Network Message Types
@@ -50,6 +62,6 @@ export type NetworkMessage =
   | { type: 'JOIN'; payload: Player }
   | { type: 'SYNC_STATE'; payload: GameState }
   | { type: 'UPDATE_SETTINGS'; payload: GameConfig }
-  | { type: 'SUBMIT_HINT'; payload: { playerId: string; hint: string } }
-  | { type: 'SUBMIT_VOTE'; payload: { voterId: string; outsiderId: string } }
+  | { type: 'END_TURN'; payload: { playerId: string; text: string } }
+  | { type: 'SUBMIT_VOTE'; payload: { voterId: string; vote: VotePayload } }
   | { type: 'RESTART'; payload: null };
