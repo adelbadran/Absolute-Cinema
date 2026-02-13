@@ -53,7 +53,7 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
       </div>
 
       {/* Grid */}
-      <div className="flex-1 grid grid-cols-2 gap-3 content-start overflow-y-auto pb-24 px-2">
+      <div className="flex-1 grid grid-cols-2 gap-3 content-start overflow-y-auto pb-40 px-2">
         {otherPlayers.map((p) => {
             const isSelected = selectedOutsider === p.id;
             

@@ -17,13 +17,26 @@ export const ScreenHome: React.FC<ScreenHomeProps> = ({ onHost, onJoin, onTutori
   const [mode, setMode] = useState<'splash' | 'menu' | 'join'>('splash');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Auto-fill room code from URL query param if present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('room');
+    if (code) {
+        setRoomCode(code);
+        setMode('join');
+    }
+  }, []);
+
   // Fake Splash Screen
   useEffect(() => {
-    const timer = setTimeout(() => {
-        setMode('menu');
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
+    if (mode === 'splash') {
+        const timer = setTimeout(() => {
+            // Check again if we moved to join via URL param logic
+            setMode(prev => prev === 'join' ? 'join' : 'menu');
+        }, 2500);
+        return () => clearTimeout(timer);
+    }
+  }, [mode]);
 
   const changeAvatar = (dir: 1 | -1) => {
       setAvatarIndex(prev => {
@@ -75,123 +88,127 @@ export const ScreenHome: React.FC<ScreenHomeProps> = ({ onHost, onJoin, onTutori
 
   if (mode === 'join') {
     return (
-      <div className="flex flex-col h-full items-center justify-center p-6 space-y-6 animate-enter max-w-md mx-auto">
-        <div className="w-full flex justify-start">
-             <button onClick={() => setMode('menu')} className="bg-zinc-900 p-3 rounded-full hover:bg-zinc-800 transition text-white border border-zinc-700">
-                <ArrowRight size={24} />
-             </button>
-        </div>
-        
-        <div className="text-center w-full">
-            <h2 className="text-3xl font-black text-white mb-2">تذاكر الدخول 🎟️</h2>
-            <p className="text-zinc-500 text-sm">اختار شخصيتك وبياناتك</p>
-        </div>
-        
-        <div className="w-full space-y-4">
-            <AvatarSelector />
+      <div className="h-full w-full overflow-y-auto">
+          <div className="flex flex-col min-h-full items-center justify-center p-6 space-y-6 animate-enter max-w-md mx-auto">
+            <div className="w-full flex justify-start">
+                <button onClick={() => setMode('menu')} className="bg-zinc-900 p-3 rounded-full hover:bg-zinc-800 transition text-white border border-zinc-700">
+                    <ArrowRight size={24} />
+                </button>
+            </div>
             
-            <div className="glass-panel p-1 rounded-2xl">
-                <input
-                type="text"
-                placeholder="اسمك إيه يا نجم؟"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-transparent text-white text-center text-xl p-4 outline-none placeholder-zinc-600 font-bold"
-                maxLength={10}
-                disabled={isLoading}
-                />
+            <div className="text-center w-full">
+                <h2 className="text-3xl font-black text-white mb-2">تذاكر الدخول 🎟️</h2>
+                <p className="text-zinc-500 text-sm">اختار شخصيتك وبياناتك</p>
+            </div>
+            
+            <div className="w-full space-y-4">
+                <AvatarSelector />
+                
+                <div className="glass-panel p-1 rounded-2xl">
+                    <input
+                    type="text"
+                    placeholder="اسمك إيه يا نجم؟"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-transparent text-white text-center text-xl p-4 outline-none placeholder-zinc-600 font-bold"
+                    maxLength={10}
+                    disabled={isLoading}
+                    />
+                </div>
+
+                <div className="glass-panel p-1 rounded-2xl">
+                    <input
+                    type="number"
+                    placeholder="كود الروم (4 أرقام)"
+                    value={roomCode}
+                    onChange={(e) => setRoomCode(e.target.value)}
+                    className="w-full bg-transparent text-white text-center text-xl p-4 outline-none placeholder-zinc-600 font-bold tracking-widest"
+                    maxLength={4}
+                    disabled={isLoading}
+                    />
+                </div>
             </div>
 
-            <div className="glass-panel p-1 rounded-2xl">
-                <input
-                type="number"
-                placeholder="كود الروم (4 أرقام)"
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
-                className="w-full bg-transparent text-white text-center text-xl p-4 outline-none placeholder-zinc-600 font-bold tracking-widest"
-                maxLength={4}
-                disabled={isLoading}
-                />
+            <div className="w-full pt-4 pb-8">
+            <Button 
+                fullWidth 
+                variant="gold"
+                onClick={handleJoinClick}
+                disabled={!name.trim() || roomCode.length !== 4 || isLoading}
+            >
+                {isLoading ? <Loader2 className="animate-spin" /> : "ادخل الروم"}
+            </Button>
             </div>
-        </div>
-
-        <div className="w-full pt-4">
-          <Button 
-            fullWidth 
-            variant="gold"
-            onClick={handleJoinClick}
-            disabled={!name.trim() || roomCode.length !== 4 || isLoading}
-          >
-            {isLoading ? <Loader2 className="animate-spin" /> : "ادخل الروم"}
-          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full items-center justify-between p-6 py-12 animate-enter max-w-md mx-auto">
-      
-      <div className="flex-1 flex flex-col justify-center items-center text-center space-y-6">
-        <div className="relative">
-            <div className="absolute inset-0 bg-red-600 blur-3xl opacity-20 rounded-full animate-pulse"></div>
-            <Film size={100} className="text-red-600 relative z-10 drop-shadow-2xl rotate-[-10deg]" />
-        </div>
+    <div className="h-full w-full overflow-y-auto">
+        <div className="flex flex-col min-h-full items-center justify-between p-6 py-12 animate-enter max-w-md mx-auto">
         
-        <div>
-            <h1 className="text-6xl font-black text-white leading-[0.9] text-glow">
-            ABSOLUTE<br/><span className="text-red-600">CINEMA</span>
-            </h1>
-            <div className="h-1 w-20 bg-red-600 mx-auto mt-4 rounded-full"></div>
-        </div>
-        <p className="text-zinc-500 font-medium tracking-wide">تحت إشراف جروب الفرح</p>
-      </div>
-
-      <div className="w-full space-y-4 relative z-10">
-        <div className="glass-panel p-6 rounded-3xl space-y-4">
-            <AvatarSelector />
-            
-            <div className="border-b border-zinc-800 pb-4 mb-2">
-                 <input
-                    type="text"
-                    placeholder="اكتب اسم الشهرة..."
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl text-white text-center text-lg p-3 outline-none focus:border-red-600 transition-colors placeholder-zinc-600 font-bold"
-                    maxLength={10}
-                    disabled={isLoading}
-                />
+        <div className="flex-1 flex flex-col justify-center items-center text-center space-y-6 mb-8">
+            <div className="relative">
+                <div className="absolute inset-0 bg-red-600 blur-3xl opacity-20 rounded-full animate-pulse"></div>
+                <Film size={100} className="text-red-600 relative z-10 drop-shadow-2xl rotate-[-10deg]" />
             </div>
-           
-            <Button 
-              fullWidth 
-              onClick={handleHostClick}
-              disabled={!name.trim() || isLoading}
-              className="text-lg"
-            >
-              {isLoading ? <Loader2 className="animate-spin" /> : <><Play fill="currentColor" size={20} /> إنشاء روم جديدة</>}
-            </Button>
             
-            <Button 
-              variant="secondary" 
-              fullWidth 
-              onClick={() => setMode('join')}
-              className="text-lg"
-              disabled={isLoading}
-            >
-              <Users size={20} />
-              دخول روم موجودة
-            </Button>
+            <div>
+                <h1 className="text-6xl font-black text-white leading-[0.9] text-glow">
+                ABSOLUTE<br/><span className="text-red-600">CINEMA</span>
+                </h1>
+                <div className="h-1 w-20 bg-red-600 mx-auto mt-4 rounded-full"></div>
+            </div>
+            <p className="text-zinc-500 font-medium tracking-wide">تحت إشراف جروب الفرح</p>
         </div>
 
-        <button 
-          onClick={onTutorial}
-          className="w-full text-zinc-600 text-sm flex items-center justify-center gap-2 hover:text-zinc-400 transition-colors py-2"
-        >
-          <HelpCircle size={16} />
-          كيف تلعب؟
-        </button>
-      </div>
+        <div className="w-full space-y-4 relative z-10 pb-8">
+            <div className="glass-panel p-6 rounded-3xl space-y-4">
+                <AvatarSelector />
+                
+                <div className="border-b border-zinc-800 pb-4 mb-2">
+                    <input
+                        type="text"
+                        placeholder="اكتب اسم الشهرة..."
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl text-white text-center text-lg p-3 outline-none focus:border-red-600 transition-colors placeholder-zinc-600 font-bold"
+                        maxLength={10}
+                        disabled={isLoading}
+                    />
+                </div>
+            
+                <Button 
+                fullWidth 
+                onClick={handleHostClick}
+                disabled={!name.trim() || isLoading}
+                className="text-lg"
+                >
+                {isLoading ? <Loader2 className="animate-spin" /> : <><Play fill="currentColor" size={20} /> إنشاء روم جديدة</>}
+                </Button>
+                
+                <Button 
+                variant="secondary" 
+                fullWidth 
+                onClick={() => setMode('join')}
+                className="text-lg"
+                disabled={isLoading}
+                >
+                <Users size={20} />
+                دخول روم موجودة
+                </Button>
+            </div>
+
+            <button 
+            onClick={onTutorial}
+            className="w-full text-zinc-600 text-sm flex items-center justify-center gap-2 hover:text-zinc-400 transition-colors py-2"
+            >
+            <HelpCircle size={16} />
+            كيف تلعب؟
+            </button>
+        </div>
+        </div>
     </div>
   );
 };
