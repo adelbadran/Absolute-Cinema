@@ -30,7 +30,8 @@ const App: React.FC = () => {
     votes: {},
     winners: [],
     wordPack: null,
-    usedWordPackIndices: []
+    usedWordPackIndices: [],
+    readyPlayers: []
   });
   
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -58,7 +59,8 @@ const App: React.FC = () => {
             ...msg.payload,
             config: incoming.config || prev.config || { maxRounds: 3, roundDurationBase: 30, includeSpecialRoles: true },
             turnOrder: incoming.turnOrder || prev.turnOrder || [],
-            usedWordPackIndices: incoming.usedWordPackIndices || prev.usedWordPackIndices || []
+            usedWordPackIndices: incoming.usedWordPackIndices || prev.usedWordPackIndices || [],
+            readyPlayers: incoming.readyPlayers || prev.readyPlayers || []
         }));
         break;
       case 'UPDATE_SETTINGS':
@@ -80,6 +82,12 @@ const App: React.FC = () => {
             votes: { ...prev.votes, [msg.payload.voterId]: msg.payload.vote }
         }));
         break;
+      case 'PLAYER_READY':
+        setGameState(prev => ({
+            ...prev,
+            readyPlayers: prev.readyPlayers.includes(msg.payload) ? prev.readyPlayers : [...prev.readyPlayers, msg.payload]
+        }));
+        break;
       case 'RESTART':
          break;
     }
@@ -96,6 +104,18 @@ const App: React.FC = () => {
     }, 50);
     return () => clearTimeout(timeout);
   }, [gameState, isHost]);
+
+  // --- Host: Check for All Ready to Start Game ---
+  useEffect(() => {
+      if (!isHost) return;
+      if (gameState.phase === GamePhase.ROLE_REVEAL) {
+          // Check if all connected players are ready
+          const allReady = gameState.players.every(p => gameState.readyPlayers.includes(p.id));
+          if (allReady && gameState.players.length > 0) {
+              setGameState(prev => ({ ...prev, phase: GamePhase.GAME_ROUND }));
+          }
+      }
+  }, [gameState.phase, gameState.players, gameState.readyPlayers, isHost]);
 
   // --- Host Game Loop (Timer & Turns) ---
   useEffect(() => {
@@ -285,6 +305,14 @@ const App: React.FC = () => {
     setGameState(prev => ({ ...prev, phase: GamePhase.HOME, roomCode: '', players: [] }));
   };
 
+  const handleReady = () => {
+      setGameState(prev => ({
+          ...prev,
+          readyPlayers: prev.readyPlayers.includes(myPlayerId) ? prev.readyPlayers : [...prev.readyPlayers, myPlayerId]
+      }));
+      network.send({ type: 'PLAYER_READY', payload: myPlayerId });
+  };
+
   const handleStartGame = () => {
     if (!isHost) return;
     
@@ -414,12 +442,11 @@ const App: React.FC = () => {
         timer: getRoundDuration(1, gameState.config.roundDurationBase),
         hints: [],
         votes: {},
-        winners: []
+        winners: [],
+        readyPlayers: [] // Reset ready players
     });
 
-    setTimeout(() => {
-        setGameState(prev => ({ ...prev, phase: GamePhase.GAME_ROUND }));
-    }, 6000);
+    // REMOVED AUTO TIMEOUT. Now waits for everyone to be ready.
   };
 
   const handleEndTurn = (text: string) => {
@@ -530,6 +557,7 @@ const App: React.FC = () => {
           winners: [],
           turnOrder: [], 
           turnIndex: 0,
+          readyPlayers: [],
           players: prev.players.map(p => ({ 
               ...p, 
               role: undefined, 
@@ -575,6 +603,7 @@ const App: React.FC = () => {
                 myPlayerId={myPlayerId}
                 onEndTurn={handleEndTurn}
                 onTimeUp={() => {}}
+                onReady={handleReady}
             />
         ) : gameState.phase === GamePhase.VOTING ? (
             <ScreenVote 

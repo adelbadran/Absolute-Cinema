@@ -55,6 +55,7 @@ export interface GameState {
   outsiderWord?: string; // Team C
   teamBWord?: string; // Team B
   teamDWord?: string; // Team D
+  readyPlayers: string[]; // IDs of players who clicked ready
 }
 
 // Network Message Types
@@ -64,4 +65,5 @@ export type NetworkMessage =
   | { type: 'UPDATE_SETTINGS'; payload: GameConfig }
   | { type: 'END_TURN'; payload: { playerId: string; text: string } }
   | { type: 'SUBMIT_VOTE'; payload: { voterId: string; vote: VotePayload } }
-  | { type: 'RESTART'; payload: null };
+  | { type: 'RESTART'; payload: null }
+  | { type: 'PLAYER_READY'; payload: string };

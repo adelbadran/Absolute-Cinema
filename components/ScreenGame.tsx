@@ -2,27 +2,29 @@
 import React, { useState, useEffect } from 'react';
 import { Player, GameState, GamePhase } from '../types';
 import { Button } from './Button';
-import { Eye, EyeOff, Clock, Megaphone, Crown, MicOff, Laugh, AlertTriangle, BadgeCheck, CheckCircle2, Send, Drama, Gift, Check } from 'lucide-react';
+import { Eye, EyeOff, Clock, Megaphone, Crown, MicOff, Laugh, AlertTriangle, BadgeCheck, CheckCircle2, Send, Drama, Gift, Check, Loader2 } from 'lucide-react';
 import { sounds } from '../services/sound';
 import { SPECIAL_ROLES_INFO } from '../constants';
-import { ConfirmModal } from './ConfirmModal';
 
 interface ScreenGameProps {
   gameState: GameState;
   myPlayerId: string;
   onEndTurn: (word: string) => void;
   onTimeUp: () => void;
+  onReady: () => void;
 }
 
-export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, onEndTurn }) => {
+export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, onEndTurn, onReady }) => {
   const [showWord, setShowWord] = useState(false);
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [showNewRoundGift, setShowNewRoundGift] = useState(false);
-  const [showEndTurnConfirm, setShowEndTurnConfirm] = useState(false);
 
   const myPlayer = gameState.players.find(p => p.id === myPlayerId);
   const isMyTurn = gameState.currentTurnPlayerId === myPlayerId;
   const turnPlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId);
+  
+  const isReady = gameState.readyPlayers.includes(myPlayerId);
+  const waitingCount = gameState.players.length - gameState.readyPlayers.length;
   
   // Resolve Role Info
   const roleKey = myPlayer?.specialRole || 'NORMAL';
@@ -111,11 +113,12 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
       }
   }, [isMyTurn]);
 
-  // Ensure Role Reveal shows up when phase changes, but allows dismissal
+  // Ensure Role Reveal shows up when phase changes to GAME_ROUND, but allows dismissal
   useEffect(() => {
-    if (gameState.phase === GamePhase.ROLE_REVEAL) {
-        setShowRoleReveal(true);
-        // REMOVED AUTO-TIMEOUT. User must click ready.
+    if (gameState.phase === GamePhase.GAME_ROUND && gameState.currentRound === 1) {
+        // Just for initial transition, we might want to ensure role reveal is hidden if we came from strict wait state
+        // But logic below handles "If Phase is ROLE_REVEAL, FORCE show".
+        // This effect is mostly for reconnect logic or mid-game checking.
     }
   }, [gameState.phase]);
 
@@ -128,14 +131,28 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
       }
   }, [gameState.currentRound, roleKey]);
 
-  const handleConfirmEndTurn = () => {
+  const handleEndTurnClick = () => {
       sounds.vibrateSuccess();
-      setShowEndTurnConfirm(false);
       onEndTurn("تم ✅");
   };
 
-  // Role Reveal Screen (Round 1 Start or Reconnect)
-  if (showRoleReveal && gameState.currentRound === 1) {
+  const toggleWordReveal = () => {
+      if (!showWord) sounds.vibrateClick();
+      setShowWord(!showWord);
+  };
+  
+  const handleReadyClick = () => {
+      sounds.vibrateClick();
+      onReady();
+  };
+
+  // --------------------------------------------------------
+  // ROLE REVEAL & WAITING ROOM (STRICT PHASE: ROLE_REVEAL)
+  // --------------------------------------------------------
+  const isRoleRevealPhase = gameState.phase === GamePhase.ROLE_REVEAL;
+  const shouldShowRevealOverlay = isRoleRevealPhase || (showRoleReveal && gameState.currentRound === 1);
+
+  if (shouldShowRevealOverlay) {
     return (
       <div className="flex flex-col h-full items-center justify-center p-6 text-center animate-enter bg-black/95 z-50 absolute inset-0 overflow-hidden">
         <div className={`absolute inset-0 opacity-20 bg-gradient-to-b ${roleTheme.wrapper} animate-pulse pointer-events-none`}></div>
@@ -167,9 +184,34 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
         </div>
 
         <div className="mt-10 w-full max-w-xs relative z-10">
-            <Button onClick={() => setShowRoleReveal(false)} fullWidth variant="outline" className="backdrop-blur-md bg-black/30 border-zinc-600 text-zinc-300 hover:text-white hover:border-white hover:bg-white/5">
-                جاهز 🎬
-            </Button>
+            {isRoleRevealPhase ? (
+                /* WAITING MODE */
+                isReady ? (
+                     <div className="bg-zinc-900/80 border border-zinc-700 rounded-2xl p-4 flex flex-col items-center gap-2 animate-pulse">
+                         <div className="flex items-center gap-2 text-zinc-400">
+                             <Loader2 className="animate-spin" size={20} />
+                             <span className="font-bold text-sm">مستنيين الباقي ({waitingCount})...</span>
+                         </div>
+                         <div className="flex gap-1 mt-1">
+                             {gameState.players.map(p => {
+                                 const pReady = gameState.readyPlayers.includes(p.id);
+                                 return (
+                                     <div key={p.id} className={`w-2 h-2 rounded-full ${pReady ? 'bg-green-500' : 'bg-zinc-700'}`} />
+                                 );
+                             })}
+                         </div>
+                     </div>
+                ) : (
+                    <Button onClick={handleReadyClick} fullWidth variant="gold" className="shadow-[0_0_30px_rgba(234,179,8,0.4)] animate-pop">
+                        جاهز 🎬
+                    </Button>
+                )
+            ) : (
+                /* VIEW MODE (Mid-Game) */
+                <Button onClick={() => setShowRoleReveal(false)} fullWidth variant="outline" className="backdrop-blur-md bg-black/30 border-zinc-600 text-zinc-300 hover:text-white hover:border-white hover:bg-white/5">
+                    رجوع للعب 🔙
+                </Button>
+            )}
         </div>
       </div>
     );
@@ -179,15 +221,6 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
   return (
     <div className={`flex flex-col h-full w-full overflow-y-auto items-center justify-between p-6 max-w-md mx-auto transition-colors duration-1000 ${isMyTurn ? 'bg-green-900/10' : ''}`}>
       
-      <ConfirmModal 
-        isOpen={showEndTurnConfirm}
-        title="تأكيد انتهاء الدور"
-        message="متأكد إنك قولت التلميح وخلصت دورك؟"
-        confirmText="أيوه خلصت"
-        onConfirm={handleConfirmEndTurn}
-        onCancel={() => setShowEndTurnConfirm(false)}
-      />
-
       {/* New Round Gift Popup */}
       {showNewRoundGift && (
           <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 animate-pop w-[90%] max-w-sm">
@@ -218,21 +251,20 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
             </div>
         </div>
         
-        {/* Secret Word Toggle */}
+        {/* Secret Word Toggle (Changed to Click Toggle) */}
         <button 
-            className="flex flex-col items-end gap-1 bg-zinc-900/80 hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-700 transition-all active:scale-95 shadow-md"
-            onMouseDown={() => setShowWord(true)}
-            onMouseUp={() => setShowWord(false)}
-            onTouchStart={() => setShowWord(true)}
-            onTouchEnd={() => setShowWord(false)}
-            onTouchCancel={() => setShowWord(false)}
+            className="flex flex-col items-end gap-1 bg-zinc-900/80 hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-700 transition-all active:scale-95 shadow-md select-none"
+            onClick={toggleWordReveal}
         >
            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">كلمتك السرية</span>
            {showWord ? (
-               <span className="font-black text-white text-lg animate-enter bg-red-600 px-2 rounded">{myPlayer?.word}</span>
+               <div className="flex flex-col items-end">
+                    <span className="font-black text-white text-lg animate-enter bg-red-600 px-2 rounded min-w-[80px] text-center shadow-[0_0_15px_rgba(220,38,38,0.5)]">{myPlayer?.word}</span>
+                    <span className="text-[10px] text-zinc-400 mt-1 flex items-center gap-1"><EyeOff size={10} /> اخفي الكلمة</span>
+               </div>
            ) : (
-               <div className="flex items-center gap-2">
-                   <EyeOff size={16} className="text-zinc-500" />
+               <div className="flex items-center gap-2 py-1">
+                   <Eye size={18} className="text-zinc-500" />
                    <span className="text-zinc-300 text-sm font-bold">إضغط للكشف</span>
                </div>
            )}
@@ -285,14 +317,14 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
       </div>
 
       {/* 3. Footer Action */}
-      <div className="w-full mt-4 pb-4 relative z-30">
+      <div className="w-full mt-4 pb-12 relative z-50">
         {isMyTurn ? (
             <div className="w-full animate-enter">
                 <Button 
-                    onClick={() => setShowEndTurnConfirm(true)} 
+                    onClick={handleEndTurnClick} 
                     variant="primary" 
                     fullWidth
-                    className="py-6 shadow-[0_0_40px_rgba(220,38,38,0.5)] text-2xl border-t-4 border-red-500"
+                    className="py-6 shadow-[0_0_40px_rgba(220,38,38,0.5)] text-2xl border-t-4 border-red-500 active:scale-95 transition-transform"
                 >
                     <Check size={32} />
                     قولت التلميح (تمام)
