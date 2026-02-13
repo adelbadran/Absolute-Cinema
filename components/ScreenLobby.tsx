@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Player, GameConfig } from '../types';
 import { Button } from './Button';
 import { Copy, Users, LogOut, Settings, Timer, Hash, Sparkles } from 'lucide-react';
+import { ConfirmModal } from './ConfirmModal';
 
 interface ScreenLobbyProps {
   roomCode: string;
@@ -19,6 +20,10 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
   const devCanStart = players.length >= 3 && players.length % 2 !== 0;
   const [showSettings, setShowSettings] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState("اضغط عشان تنسخ اللينك");
+  
+  // Modal States
+  const [showStartConfirm, setShowStartConfirm] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const handleCopyLink = () => {
       const url = `${window.location.protocol}//${window.location.host}/?room=${roomCode}`;
@@ -29,11 +34,32 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
 
   return (
     <div className="h-full w-full overflow-y-auto">
+        <ConfirmModal 
+            isOpen={showStartConfirm}
+            title="بدء اللعبة"
+            message={`متأكد إنك عايز تبدأ بـ ${players.length} لعيبة؟ تأكد إن العدد فردي.`}
+            onConfirm={() => { setShowStartConfirm(false); onStart(); }}
+            onCancel={() => setShowStartConfirm(false)}
+        />
+        
+        <ConfirmModal 
+            isOpen={showExitConfirm}
+            title="خروج من الروم"
+            message="متأكد إنك عايز تخرج؟ لو إنت الهوست الروم هتتقفل."
+            confirmText="خروج"
+            isDanger
+            onConfirm={() => { setShowExitConfirm(false); onBack(); }}
+            onCancel={() => setShowExitConfirm(false)}
+        />
+
         <div className="flex flex-col min-h-full p-6 animate-fade-in max-w-md mx-auto">
         
         <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-zinc-300">الاستقبال</h2>
-            <button onClick={onBack} className="text-red-400 hover:text-red-300 flex items-center gap-1 text-sm font-bold bg-zinc-900 px-3 py-2 rounded-lg transition-colors border border-zinc-800">
+            <button 
+                onClick={() => setShowExitConfirm(true)} 
+                className="text-red-400 hover:text-red-300 flex items-center gap-1 text-sm font-bold bg-zinc-900 px-3 py-2 rounded-lg transition-colors border border-zinc-800"
+            >
                 <LogOut size={16} />
                 خروج
             </button>
@@ -51,7 +77,7 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
         </div>
 
         {isHost && (
-            <div className="mb-6 bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden">
+            <div className="mb-6 bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden shadow-lg">
                 <button 
                     onClick={() => setShowSettings(!showSettings)}
                     className="w-full flex justify-between items-center p-4 text-zinc-300 hover:bg-zinc-800/50 transition-colors"
@@ -62,12 +88,12 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                         <span className="text-zinc-600">|</span>
                         <span>{config.roundDurationBase}ث</span>
                         <span className="text-zinc-600">|</span>
-                        <span>{config.includeSpecialRoles ? "أدوار خاصة ✅" : "بدون أدوار ❌"}</span>
+                        <span>{config.includeSpecialRoles ? "أدوار ✅" : "بدون ❌"}</span>
                     </span>
                 </button>
                 
                 {showSettings && (
-                    <div className="p-4 pt-0 border-t border-zinc-800 animate-enter">
+                    <div className="p-4 pt-0 border-t border-zinc-800 animate-enter bg-black/20">
                         <div className="space-y-4 mt-4">
                             {/* Rounds Setting */}
                             <div>
@@ -90,10 +116,10 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                             {/* Time Setting */}
                             <div>
                                 <label className="flex items-center gap-2 text-sm text-zinc-400 mb-2">
-                                    <Timer size={16} /> زمن التفكير (أول جولة)
+                                    <Timer size={16} /> زمن التفكير (ثابت لكل جولة)
                                 </label>
                                 <div className="flex gap-2">
-                                    {[5, 7, 10, 12].map(sec => (
+                                    {[20, 30, 45, 60].map(sec => (
                                         <button 
                                             key={sec}
                                             onClick={() => onUpdateSettings({ ...config, roundDurationBase: sec })}
@@ -103,6 +129,9 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                                         </button>
                                     ))}
                                 </div>
+                                <p className="text-[10px] text-zinc-500 mt-2 text-right">
+                                    * الوقت ده ثابت ومش هيتغير بين الجولات.
+                                </p>
                             </div>
 
                             {/* Special Roles Toggle */}
@@ -166,13 +195,12 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
             </div>
         </div>
 
-        <div className="space-y-3 pt-4 border-t border-zinc-800 mt-auto pb-8">
+        <div className="space-y-3 pt-4 border-t border-zinc-800 mt-auto pb-4">
             {!isHost && (
             <div className="text-center p-4 bg-zinc-900/50 rounded-xl border border-dashed border-zinc-700">
                 <p className="animate-pulse text-zinc-300 font-medium">مستنيين المخرج يبدأ... 🎬</p>
                 <div className="mt-2 text-xs text-zinc-500 flex justify-center gap-4">
                     <span>{config.maxRounds} جولات</span>
-                    <span>{config.roundDurationBase} ثانية</span>
                     <span>{config.includeSpecialRoles ? "أدوار خاصة" : "كلاسيك"}</span>
                 </div>
             </div>
@@ -185,7 +213,7 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                 </div>
                 <Button 
                 fullWidth 
-                onClick={onStart}
+                onClick={() => setShowStartConfirm(true)}
                 disabled={!devCanStart}
                 className="py-4 text-xl"
                 >
@@ -193,6 +221,10 @@ export const ScreenLobby: React.FC<ScreenLobbyProps> = ({ roomCode, players, isH
                 </Button>
             </>
             )}
+        </div>
+        
+        <div className="w-full text-center pb-4 opacity-50">
+           <p className="text-[10px] text-yellow-600/50 font-bold tracking-widest uppercase">جروب الفرح للإنتاج السينمائي - 2026</p>
         </div>
         </div>
     </div>

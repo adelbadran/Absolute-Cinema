@@ -20,7 +20,7 @@ const App: React.FC = () => {
     roomCode: '',
     phase: GamePhase.HOME,
     players: [],
-    config: { maxRounds: 3, roundDurationBase: 10, includeSpecialRoles: true },
+    config: { maxRounds: 3, roundDurationBase: 30, includeSpecialRoles: true },
     currentRound: 1,
     currentTurnPlayerId: null,
     turnOrder: [],
@@ -56,7 +56,7 @@ const App: React.FC = () => {
         const incoming = msg.payload as any;
         setGameState(prev => ({
             ...msg.payload,
-            config: incoming.config || prev.config || { maxRounds: 3, roundDurationBase: 10, includeSpecialRoles: true },
+            config: incoming.config || prev.config || { maxRounds: 3, roundDurationBase: 30, includeSpecialRoles: true },
             turnOrder: incoming.turnOrder || prev.turnOrder || [],
             usedWordPackIndices: incoming.usedWordPackIndices || prev.usedWordPackIndices || []
         }));
@@ -123,40 +123,37 @@ const App: React.FC = () => {
     return () => {};
   }, [gameState.phase, isHost]);
 
+  // FIXED TIME LOGIC: Use the base value constantly
   const getRoundDuration = (round: number, base: number) => {
-      const duration = base > 10 ? 10 : base; 
-      if (round === 1) return duration;
-      if (round === 2) return Math.max(7, duration - 2);
-      return Math.max(5, duration - 4);
+      return base; // Constant time per round as requested
   };
 
-  // Helper to assign random roles for the round
+  // STRICT SINGLE GIFT LOGIC
   const assignRoundRoles = (currentPlayers: Player[], roundNumber: number): Player[] => {
-      // 1. Reset current special roles
+      // 1. Reset ALL players to Normal first
       let updatedPlayers = currentPlayers.map(p => ({
           ...p,
-          specialRole: p.isOutsider ? 'NORMAL' as SpecialRole : 'NORMAL' as SpecialRole // Reset to Normal
+          specialRole: p.isOutsider ? 'NORMAL' as SpecialRole : 'NORMAL' as SpecialRole
       }));
 
       // 2. Identify candidates (Innocents who haven't had a special role yet)
       const candidates = updatedPlayers.filter(p => !p.isOutsider && !p.hadSpecialRole);
 
-      // 3. Random chance to assign a role this round (or force it if we have candidates)
-      // Strategy: Try to assign 1 role per round if candidates exist
+      // 3. Pick EXACTLY ONE candidate randomly
       if (candidates.length > 0) {
           const randomCandidateIndex = Math.floor(Math.random() * candidates.length);
-          const candidateId = candidates[randomCandidateIndex].id;
+          const luckyId = candidates[randomCandidateIndex].id;
 
           const possibleRoles: SpecialRole[] = ['MUTE', 'JOKER', 'ACTOR'];
           const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
 
           updatedPlayers = updatedPlayers.map(p => {
-              if (p.id === candidateId) {
+              if (p.id === luckyId) {
                   return {
                       ...p,
                       specialRole: randomRole,
                       hadSpecialRole: true,
-                      wasJoker: (p.wasJoker || randomRole === 'JOKER') // Track if they ever were a Joker
+                      wasJoker: (p.wasJoker || randomRole === 'JOKER')
                   };
               }
               return p;

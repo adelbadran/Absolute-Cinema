@@ -139,6 +139,10 @@ export const ScreenHome: React.FC<ScreenHomeProps> = ({ onHost, onJoin, onTutori
                 {isLoading ? <Loader2 className="animate-spin" /> : "ادخل الروم"}
             </Button>
             </div>
+            
+            <div className="mt-auto w-full text-center pb-4 opacity-50">
+               <p className="text-[10px] text-yellow-600/50 font-bold tracking-widest uppercase">جروب الفرح للإنتاج السينمائي - 2026</p>
+            </div>
         </div>
       </div>
     );
@@ -155,16 +159,16 @@ export const ScreenHome: React.FC<ScreenHomeProps> = ({ onHost, onJoin, onTutori
             </div>
             
             <div>
-                <h1 className="text-6xl font-black text-white leading-[0.9] text-glow">
+                <h1 className="text-6xl font-black text-white leading-[0.9] text-glow tracking-tighter">
                 ABSOLUTE<br/><span className="text-red-600">CINEMA</span>
                 </h1>
                 <div className="h-1 w-20 bg-red-600 mx-auto mt-4 rounded-full"></div>
             </div>
-            <p className="text-zinc-500 font-medium tracking-wide">تحت إشراف جروب الفرح</p>
+            <p className="text-zinc-500 font-medium tracking-wide">كلامك هينجيك.. أو هيفضحك! 🎭</p>
         </div>
 
-        <div className="w-full space-y-4 relative z-10 pb-8">
-            <div className="glass-panel p-6 rounded-3xl space-y-4">
+        <div className="w-full space-y-4 relative z-10 pb-4">
+            <div className="glass-panel p-6 rounded-3xl space-y-4 shadow-2xl">
                 <AvatarSelector />
                 
                 <div className="border-b border-zinc-800 pb-4 mb-2">
@@ -207,6 +211,10 @@ export const ScreenHome: React.FC<ScreenHomeProps> = ({ onHost, onJoin, onTutori
             <HelpCircle size={16} />
             كيف تلعب؟
             </button>
+        </div>
+        
+        <div className="mt-4 opacity-70">
+           <p className="text-[10px] text-yellow-600 font-bold tracking-widest uppercase">جروب الفرح للإنتاج السينمائي - 2026</p>
         </div>
         </div>
     </div>
