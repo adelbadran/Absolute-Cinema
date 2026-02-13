@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Player, VotePayload } from '../types';
 import { Button } from './Button';
-import { Skull, AlertTriangle, Crosshair, BadgeCheck, Users, Check, ArrowRight, Ban } from 'lucide-react';
+import { Skull, AlertTriangle, Crosshair, BadgeCheck, Users, Check, ArrowRight, Ban, CheckCircle2 } from 'lucide-react';
 import { sounds } from '../services/sound';
 
 interface ScreenVoteProps {
@@ -92,13 +92,16 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
         {step === 2 && (
              <button
                 onClick={handleNoTeammate}
-                className={`w-full mb-4 p-4 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-3
+                className={`w-full mb-4 p-4 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden
                     ${isNoTeammate 
                         ? 'bg-purple-900/80 border-purple-500 ring-2 ring-purple-500 ring-offset-2 ring-offset-black shadow-[0_0_30px_rgba(168,85,247,0.5)] scale-[1.02]' 
                         : 'bg-zinc-900/50 border-dashed border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800'
                     }
                 `}
              >
+                 {isNoTeammate && (
+                     <div className="absolute inset-0 rounded-xl border-[3px] border-purple-400 animate-pulse opacity-70 pointer-events-none"></div>
+                 )}
                 <Ban size={24} className={isNoTeammate ? "text-purple-400" : "text-zinc-500"} />
                 <span className={`font-bold text-lg ${isNoTeammate ? "text-white" : "text-zinc-400"}`}>
                     أنا الدخيل / مليش صاحب
@@ -130,21 +133,28 @@ export const ScreenVote: React.FC<ScreenVoteProps> = ({ players, myPlayerId, onV
                             <div className={`absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,${step === 1 ? '#ff000020' : '#0000ff20'}_10px,${step === 1 ? '#ff000020' : '#0000ff20'}_20px)]`}></div>
                         )}
 
+                        {/* Pulsating Border Overlay */}
+                        {isSelected && (
+                            <div className={`absolute inset-0 rounded-xl border-[3px] ${step === 1 ? 'border-red-400' : 'border-blue-400'} animate-pulse opacity-70 pointer-events-none`}></div>
+                        )}
+
+                        {/* Selection Icon Overlay (Top-Right) */}
+                        {isSelected && (
+                             <div className={`absolute top-2 right-2 p-1.5 rounded-full ${step === 1 ? 'bg-red-600' : 'bg-blue-600'} text-white shadow-lg animate-enter z-20`}>
+                                {step === 1 ? <Crosshair size={14} /> : <CheckCircle2 size={14} />}
+                             </div>
+                        )}
+
                         {/* Avatar */}
                         <div className="relative">
                             <span className={`text-5xl block transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-105 opacity-80 group-hover:opacity-100'}`}>
                                 {p.avatar}
                             </span>
                             
-                            {/* Target Scope Overlay */}
+                            {/* Target Scope Overlay (Large) */}
                             {isSelected && step === 1 && (
                                 <div className="absolute inset-[-20%] animate-[spin_6s_linear_infinite] opacity-90 pointer-events-none">
                                     <Crosshair className="w-full h-full text-red-500 drop-shadow-[0_0_5px_rgba(220,38,38,0.8)]" strokeWidth={1} />
-                                </div>
-                            )}
-                            {isSelected && step === 2 && (
-                                <div className="absolute -right-2 -bottom-2 bg-blue-600 rounded-full p-1 border-2 border-black animate-pop shadow-lg">
-                                    <Check size={16} className="text-white" />
                                 </div>
                             )}
                         </div>

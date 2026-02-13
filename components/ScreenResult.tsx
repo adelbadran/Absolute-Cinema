@@ -2,7 +2,7 @@
 import React from 'react';
 import { Player, GameState } from '../types';
 import { Button } from './Button';
-import { Crown, AlertTriangle, VenetianMask, Users, Smile, Laugh, CheckCircle2, XCircle, Drama } from 'lucide-react';
+import { Crown, AlertTriangle, VenetianMask, Users, Smile, Laugh, CheckCircle2, XCircle, Drama, Skull, Footprints, Wind, Film } from 'lucide-react';
 import { SPECIAL_ROLES_INFO } from '../constants';
 
 interface ScreenResultProps {
@@ -28,9 +28,7 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
   const voteCounts: Record<string, number> = {};
 
   Object.entries(gameState.votes).forEach(([voterId, votePayload]) => {
-      // Standard weight 1 for all votes now that Mayor is removed
       const weight = 1;
-      
       voteCounts[votePayload.outsiderId] = (voteCounts[votePayload.outsiderId] || 0) + weight;
       
       if (voteCounts[votePayload.outsiderId] > maxVotes) {
@@ -42,17 +40,48 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
   const executedPlayer = gameState.players.find(p => p.id === executedPlayerId);
   const jokerWasExecuted = joker && executedPlayerId === joker.id;
 
-  const getRoleEmoji = (p: Player) => {
-      if (p.isOutsider) return SPECIAL_ROLES_INFO.OUTSIDER.emoji;
-      if (p.specialRole && p.specialRole !== 'NORMAL') return SPECIAL_ROLES_INFO[p.specialRole].emoji;
-      return null;
-  };
-
   return (
     <div className="flex flex-col h-full p-4 animate-fade-in max-w-md mx-auto overflow-y-auto pb-20 relative">
       
-      {/* Actor Win Special Effect */}
-      {actorWin && (
+      {/* --- 1. SPECIAL EFFECTS BACKGROUNDS --- */}
+
+      {/* OUTSIDER WIN EFFECT (Dramatic Red/Glitch/Escape) */}
+      {isOutsiderWin && (
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+            {/* Red Pulse Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/40 via-black/80 to-black animate-pulse"></div>
+            
+            {/* Glitch Overlay Background Text */}
+             <div className="absolute inset-0 flex flex-col justify-around opacity-10 overflow-hidden select-none">
+                {Array.from({length: 6}).map((_, i) => (
+                    <div key={i} className="text-red-500 font-mono text-8xl whitespace-nowrap animate-glitch" style={{animationDelay: `${i * 0.2}s`, transform: 'scale(1.5)'}}>
+                        SYSTEM_FAILURE ESCAPE 404 RUN
+                    </div>
+                ))}
+             </div>
+
+            {/* Escape Animation - Footprints running across screen */}
+            <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 h-32">
+                <div className="animate-shimmer flex items-center gap-6 opacity-60">
+                     <Wind size={100} className="text-white/20 transform -scale-x-100" />
+                     <Footprints size={60} className="text-red-500 rotate-90" />
+                     <Footprints size={60} className="text-red-500 rotate-90" />
+                     <Footprints size={60} className="text-red-500 rotate-90" />
+                </div>
+            </div>
+
+            {/* Floating Giant Icons */}
+            <VenetianMask className="absolute -bottom-20 -right-20 text-red-600/20 rotate-12 w-96 h-96 animate-pulse" />
+            <Film className="absolute top-20 -left-20 text-red-600/20 -rotate-12 w-80 h-80 animate-bounce delay-1000 duration-[3000ms]" />
+            
+            {/* Glitch Lines */}
+            <div className="absolute top-1/4 left-0 w-full h-1 bg-red-600/50 blur-sm animate-ping"></div>
+            <div className="absolute bottom-1/3 left-0 w-full h-0.5 bg-white/50 animate-pulse"></div>
+        </div>
+      )}
+
+      {/* ACTOR WIN EFFECT (Pink Shimmer) */}
+      {actorWin && !isOutsiderWin && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
                <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-pink-500/5 to-transparent"></div>
                <Drama className="absolute top-10 right-4 text-pink-500/20 animate-bounce" size={40} />
@@ -60,33 +89,42 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
           </div>
       )}
 
-      {/* Header Result */}
+      {/* --- 2. HEADER RESULT --- */}
       <div className="text-center my-6 relative z-10">
-        <div className={`inline-block p-6 rounded-full mb-6 shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 ${isOutsiderWin ? 'bg-red-900/20 border-red-600' : 'bg-green-900/20 border-green-500'}`}>
-            {isOutsiderWin ? <VenetianMask size={80} className="text-red-500 animate-bounce drop-shadow-[0_0_10px_red]" /> : <Crown size={80} className="text-yellow-400 animate-bounce drop-shadow-[0_0_10px_gold]" />}
+        <div className={`inline-block p-6 rounded-full mb-6 shadow-[0_0_60px_rgba(0,0,0,0.6)] border-[6px] transition-transform duration-700 hover:scale-110 ${isOutsiderWin ? 'bg-red-950 border-red-600 animate-bounce' : 'bg-green-900/20 border-green-500'}`}>
+            {isOutsiderWin ? (
+                <VenetianMask size={90} className="text-red-500 drop-shadow-[0_0_20px_red]" />
+            ) : (
+                <Crown size={80} className="text-yellow-400 animate-bounce drop-shadow-[0_0_10px_gold]" />
+            )}
         </div>
         
         {isOutsiderWin ? (
-            <div className="animate-pop">
-                <h1 className="text-5xl font-black mb-2 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-800 drop-shadow-[0_2px_10px_rgba(220,38,38,0.8)] uppercase">
-                    الدخيل كسب!
+            <div className="animate-enter">
+                <h1 className="text-6xl font-black mb-2 tracking-tighter text-red-600 drop-shadow-[0_4px_0_#3f0000] uppercase animate-glitch leading-[0.9]">
+                    ABSOLUTE<br/>CINEMA
                 </h1>
-                <p className="text-red-300 font-bold text-xl mt-2 tracking-wide">هرب منكم بذكاء.. مفيش فايدة فيكم 🤦‍♂️</p>
+                <p className="text-red-200 font-bold text-lg mt-2 tracking-wide bg-red-900/30 py-1 px-4 rounded-lg border border-red-500/20 inline-block animate-pulse">
+                    الدخيل عمل نمرة عالية وهرب 🎬
+                </p>
                 
                 {jokerWasExecuted && (
-                    <div className="mt-6 p-4 bg-purple-900/40 border border-purple-500/50 rounded-xl animate-pulse shadow-lg">
-                        <p className="text-purple-300 font-black text-lg flex items-center justify-center gap-2">
-                            <Laugh size={24} /> المخادع لبّسكم في الحيط!
+                    <div className="mt-6 p-4 bg-purple-900/60 border-2 border-purple-500 rounded-xl animate-pop shadow-[0_0_30px_rgba(168,85,247,0.4)]">
+                        <p className="text-purple-200 font-black text-lg flex items-center justify-center gap-2">
+                            <Laugh size={28} className="animate-spin-slow" /> المخادع لبّسكم في الحيط!
                         </p>
-                        <p className="text-xs text-purple-400 mt-1">خد نقط عشان صوتوا عليه بالغلط</p>
+                        <p className="text-xs text-purple-300 mt-1 font-bold">شكيتوا فيه بالغلط وهو كسب نقط!</p>
                     </div>
                 )}
                 
                 {!jokerWasExecuted && executedPlayerId && executedPlayerId !== outsider?.id && (
                      <div className="mt-6 p-4 bg-zinc-800/80 rounded-xl text-zinc-300 border border-zinc-700 shadow-lg">
                         <span className="block text-xs text-zinc-500 font-bold mb-1">الضحية البريئة</span>
-                        <span className="text-white font-black text-xl mx-1">{executedPlayer?.name}</span>
-                        <span className="block mt-1">ظلمتوه يا جماعة.. حرام عليكم!</span>
+                        <div className="flex items-center justify-center gap-2">
+                            <span className="text-white font-black text-2xl">{executedPlayer?.name}</span>
+                            <span className="text-4xl">💀</span>
+                        </div>
+                        <span className="block mt-1 text-sm font-bold text-red-400">ظلمتوه وطلعتوه برة!</span>
                      </div>
                 )}
             </div>
@@ -100,18 +138,20 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
         )}
       </div>
 
-      {/* The Reveal Section */}
+      {/* --- 3. THE REVEAL SECTION --- */}
       <div className="space-y-4 mb-8 relative z-10">
           
-          {/* Outsider Reveal */}
-          <div className="bg-gradient-to-br from-red-950 to-black rounded-3xl p-6 border-2 border-red-600/50 relative overflow-hidden shadow-2xl">
+          {/* Outsider Reveal Card */}
+          <div className={`rounded-3xl p-6 border-2 relative overflow-hidden shadow-2xl ${isOutsiderWin ? 'bg-gradient-to-br from-red-950 to-black border-red-500 shadow-red-900/50' : 'bg-zinc-900/60 border-red-900/30'}`}>
             <div className="absolute top-0 right-0 p-4 opacity-10"><AlertTriangle size={100} /></div>
             <div className="flex items-center gap-6 relative z-10">
-                <div className="text-6xl bg-black/40 rounded-full p-3 border border-red-500/20 shadow-inner">{outsider?.avatar}</div>
+                <div className={`text-6xl rounded-full p-3 border shadow-inner ${isOutsiderWin ? 'bg-red-600/20 border-red-500 text-white' : 'bg-black/40 border-zinc-700 text-zinc-500 grayscale'}`}>
+                    {outsider?.avatar}
+                </div>
                 <div>
-                    <p className="text-red-500 text-xs font-black uppercase tracking-widest mb-1">الدخيل (الفريق C)</p>
-                    <h2 className="text-3xl font-black text-white">{outsider?.name}</h2>
-                    <div className="flex items-center gap-3 mt-3 bg-black/40 p-2 rounded-lg border border-red-500/20">
+                    <p className={`text-xs font-black uppercase tracking-widest mb-1 ${isOutsiderWin ? 'text-red-400' : 'text-zinc-500'}`}>الدخيل (الفريق C)</p>
+                    <h2 className={`text-3xl font-black ${isOutsiderWin ? 'text-white' : 'text-zinc-300'}`}>{outsider?.name}</h2>
+                    <div className="flex items-center gap-3 mt-3 bg-black/40 p-2 rounded-lg border border-white/5">
                         <span className="text-zinc-400 text-xs font-bold">كلمته:</span>
                         <span className="text-red-500 font-black text-2xl">{gameState.outsiderWord}</span>
                     </div>
@@ -175,19 +215,16 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
           </div>
       </div>
 
-      {/* Leaderboard & Voting Stats */}
+      {/* --- 4. LEADERBOARD --- */}
       <div className="flex-1 bg-zinc-900/30 rounded-3xl p-5 border border-zinc-800/50 relative z-10 mb-8 backdrop-blur-sm">
         <h3 className="text-sm font-black mb-4 text-zinc-500 uppercase tracking-[0.2em] text-center">ترتيب اللعيبة</h3>
         <div className="space-y-3">
             {sortedPlayers.map((p, idx) => {
-                const myVote = gameState.votes[p.id];
-                const teammateVoteId = myVote?.teammateId;
-                const votedTeammate = gameState.players.find(tp => tp.id === teammateVoteId);
-                const foundTeammate = votedTeammate && votedTeammate.role === p.role && votedTeammate.id !== p.id;
                 const isActor = p.specialRole === 'ACTOR';
+                const isWinner = winners.includes(p);
                 
                 return (
-                    <div key={p.id} className={`flex flex-col bg-zinc-900/80 rounded-2xl p-3 shadow-md border ${idx === 0 ? 'border-yellow-500/50 bg-yellow-900/10' : 'border-zinc-800'} ${isActor && winners.includes(p) ? 'ring-2 ring-pink-500/30' : ''}`}>
+                    <div key={p.id} className={`flex flex-col bg-zinc-900/80 rounded-2xl p-3 shadow-md border ${idx === 0 ? 'border-yellow-500/50 bg-yellow-900/10' : 'border-zinc-800'} ${isActor && isWinner ? 'ring-2 ring-pink-500/30' : ''}`}>
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-3">
                                 <span className={`text-lg font-black w-8 text-center ${idx === 0 ? 'text-yellow-500 drop-shadow-sm' : 'text-zinc-600'}`}>#{idx + 1}</span>
@@ -203,17 +240,6 @@ export const ScreenResult: React.FC<ScreenResultProps> = ({ gameState, onRestart
                             </div>
                             <span className={`font-black px-3 py-1 rounded-lg text-sm border ${idx === 0 ? 'bg-yellow-500 text-black border-yellow-400' : 'bg-zinc-800 text-white border-zinc-700'}`}>{p.score} نقطة</span>
                         </div>
-                        
-                        {!p.isOutsider && (
-                            <div className="flex items-center gap-2 text-[11px] text-zinc-500 px-11 mt-1 bg-black/20 py-1 rounded mx-2">
-                                <span className="font-bold">التخمين:</span>
-                                {foundTeammate ? (
-                                    <span className="text-green-500 flex items-center gap-1 font-bold"><CheckCircle2 size={12} /> كشف {votedTeammate?.name} (صح!)</span>
-                                ) : (
-                                    <span className="text-red-500 flex items-center gap-1 font-bold"><XCircle size={12} /> شك في {votedTeammate?.name || "مفيش"} (غلط)</span>
-                                )}
-                            </div>
-                        )}
                     </div>
                 );
             })}

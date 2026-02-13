@@ -288,19 +288,27 @@ const App: React.FC = () => {
   const handleStartGame = () => {
     if (!isHost) return;
     
-    // 1. Pick Word Pack
+    // 1. Pick Word Pack (Ensure no repeats)
+    // Filter available packs based on history
     const availableIndices = WORD_PACKS.map((_, i) => i).filter(i => !gameState.usedWordPackIndices.includes(i));
+    
     let packIndex: number;
-    let newUsedIndices = [...gameState.usedWordPackIndices];
+    let newUsedIndices: number[];
 
+    // If all packs have been used, reset the cycle
     if (availableIndices.length === 0) {
+        // Pick any random pack from the full list
         packIndex = Math.floor(Math.random() * WORD_PACKS.length);
+        // Start a new history list with just this one
         newUsedIndices = [packIndex];
     } else {
+        // Pick a random pack from the available ones
         const randomIndex = Math.floor(Math.random() * availableIndices.length);
         packIndex = availableIndices[randomIndex];
-        newUsedIndices.push(packIndex);
+        // Append to existing history
+        newUsedIndices = [...gameState.usedWordPackIndices, packIndex];
     }
+
     const pack = WORD_PACKS[packIndex];
 
     const wordA = pack.A;

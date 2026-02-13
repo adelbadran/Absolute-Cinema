@@ -180,7 +180,7 @@ export const ScreenGame: React.FC<ScreenGameProps> = ({ gameState, myPlayerId, o
 
   // Main Game
   return (
-    <div className={`flex flex-col h-full items-center justify-between p-6 max-w-md mx-auto transition-colors duration-1000 ${isMyTurn ? 'bg-green-900/10' : ''}`}>
+    <div className={`flex flex-col h-full w-full overflow-y-auto items-center justify-between p-6 max-w-md mx-auto transition-colors duration-1000 ${isMyTurn ? 'bg-green-900/10' : ''}`}>
       
       <ConfirmModal 
         isOpen={showEndTurnConfirm}

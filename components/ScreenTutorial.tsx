@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from './Button';
-import { BookOpen, Users, Skull, Globe, MicOff, CheckCircle2, AlertTriangle, ArrowLeft, ArrowRight, Ban, Megaphone, Crown, Laugh, Drama } from 'lucide-react';
+import { BookOpen, Users, Skull, Globe, MicOff, CheckCircle2, AlertTriangle, ArrowLeft, ArrowRight, Ban, Megaphone, Crown, Laugh, Drama, Ear, Calculator } from 'lucide-react';
 
 interface ScreenTutorialProps {
   onBack: () => void;
@@ -12,33 +12,21 @@ export const ScreenTutorial: React.FC<ScreenTutorialProps> = ({ onBack }) => {
 
   const steps = [
     {
-      title: "أونلاين ومن أي مكان 🌐",
-      icon: <Globe size={48} className="text-blue-400" />,
+      title: "قصة اللعبة 🎬",
+      icon: <Users size={48} className="text-blue-400" />,
       content: (
         <div className="space-y-4 text-center">
-          <p className="text-xl font-bold text-white">العب مع صحابك حتى لو مش جنب بعض!</p>
+          <p className="text-xl font-bold text-white">إنتوا مجموعة في نفس التيم، بس فيكم واحد "دخيل"!</p>
           <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-700">
-            <p className="text-zinc-300 leading-relaxed text-sm">
-              واحد يعمل <span className="text-yellow-400 font-bold">Host</span> ويبعت كود الروم للباقي.
-              <br/>
-              مش محتاجين تكونوا على نفس الواي فاي، اللعبة شغالة بالنت العادي من أي مكان في العالم.
+            <p className="text-zinc-300 leading-relaxed text-sm font-bold">
+              اللعبة هتقسمكم فريقين (A و B) ومعاكم دخيل (C).
             </p>
+            <div className="mt-4 text-xs text-zinc-400 space-y-2">
+                <p>✅ فريق A و B معاهم كلمات "شبه بعض جداً" (مثلاً: شاورما سوري vs شاورما مصري).</p>
+                <p>😈 الدخيل معاه كلمة تالتة خالص.</p>
+                <p className="text-yellow-500 font-bold">🎯 هدفك: تعرف مين معاك في التيم ومين الدخيل.</p>
+            </div>
           </div>
-        </div>
-      )
-    },
-    {
-      title: "نظام التوأم 👯",
-      icon: <Users size={48} className="text-green-500" />,
-      content: (
-        <div className="space-y-4 text-center">
-          <p className="text-zinc-300 text-sm">كل تيم مكون من <span className="text-green-400 font-bold">شخصين بس!</span></p>
-          <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-700 text-right space-y-2 text-xs">
-             <p className="text-white">🔹 إنت ومعاك واحد بس عنده نفس الكلمة.</p>
-             <p className="text-white">🔹 مهمتك تلاقي "التوأم" بتاعك ده وسط الزحمة.</p>
-             <p className="text-red-400 font-bold mt-2">🔸 إلا لو كنت الدخيل: أنت بطولك!</p>
-          </div>
-          <p className="text-[10px] text-zinc-500 mt-2">* في الأعداد الكبيرة ممكن التيم يزيد عن 2، بس الأساس إنك تلاقي صاحبك.</p>
         </div>
       )
     },
@@ -47,7 +35,7 @@ export const ScreenTutorial: React.FC<ScreenTutorialProps> = ({ onBack }) => {
       icon: <Megaphone size={48} className="text-yellow-400" />,
       content: (
         <div className="space-y-4 text-center">
-          <p className="text-zinc-300 text-sm">الذكاء في التلميح!</p>
+          <p className="text-zinc-300 text-sm">فن التلميح!</p>
           <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-700 text-right space-y-3 text-xs">
              <p className="text-white leading-relaxed">
                <span className="text-yellow-400 font-bold">١.</span> كل واحد عليه الدور يقول كلمة واحدة أو جملة قصيرة تلمح لكلمته السرية.
@@ -55,23 +43,22 @@ export const ScreenTutorial: React.FC<ScreenTutorialProps> = ({ onBack }) => {
              <p className="text-white leading-relaxed">
                <span className="text-yellow-400 font-bold">٢.</span> <span className="text-red-400 font-bold">المعضلة:</span> لو كنت واضح أوي، الدخيل هيفهم الكلمة ويمثل عليكم. ولو كنت غامض أوي، صاحبك مش هيعرفك وممكن يشك فيك!
              </p>
-             <p className="text-zinc-400 italic text-center mt-2">"خير الكلام ما قل ودل"</p>
           </div>
         </div>
       )
     },
     {
-      title: "شخصيات خاصة 🎭",
+      title: "أدوار هدايا 🎁",
       icon: <Crown size={48} className="text-purple-400" />,
       content: (
         <div className="space-y-4 text-center">
-          <p className="text-zinc-300 text-sm">ممكن يطلعلك دور يغير اللعبة:</p>
+          <p className="text-zinc-300 text-sm">كل جولة ممكن يطلعلك دور خاص:</p>
           <div className="grid grid-cols-1 gap-2 text-right">
              <div className="bg-blue-900/20 p-2 rounded-lg border border-blue-500/30 flex items-center gap-3">
                 <MicOff className="text-blue-400 shrink-0" size={20} />
                 <div>
                     <p className="text-blue-200 font-bold text-xs">الصامت 🤐</p>
-                    <p className="text-zinc-400 text-[10px]">دوره بيتعمله Skip، مش بيتكلم ولا بيلمح خالص!</p>
+                    <p className="text-zinc-400 text-[10px]">ممنوع تتكلم! دورك هيتعمله Skip تلقائي.</p>
                 </div>
              </div>
              
@@ -79,7 +66,7 @@ export const ScreenTutorial: React.FC<ScreenTutorialProps> = ({ onBack }) => {
                 <Laugh className="text-purple-400 shrink-0" size={20} />
                 <div>
                     <p className="text-purple-200 font-bold text-xs">المخادع 🤡</p>
-                    <p className="text-zinc-400 text-[10px]">عايز الناس تشك فيه وتطلعه برة عشان يكسب.</p>
+                    <p className="text-zinc-400 text-[10px]">مهمتك تخلي الناس تشك فيك وتصوت ضدك عشان تاخد نقط زيادة!</p>
                 </div>
              </div>
 
@@ -87,7 +74,7 @@ export const ScreenTutorial: React.FC<ScreenTutorialProps> = ({ onBack }) => {
                 <Drama className="text-pink-400 shrink-0" size={20} />
                 <div>
                     <p className="text-pink-200 font-bold text-xs">الممثل 🎭</p>
-                    <p className="text-zinc-400 text-[10px]">لازم يقول تلميحه بأداء تمثيلي (حزين، سعيد، غضبان...).</p>
+                    <p className="text-zinc-400 text-[10px]">لازم تقول تلميحك بأداء تمثيلي (دراما، أكشن، حزن...).</p>
                 </div>
              </div>
           </div>
@@ -95,46 +82,61 @@ export const ScreenTutorial: React.FC<ScreenTutorialProps> = ({ onBack }) => {
       )
     },
     {
-      title: "مهمة التصويت 🗳️",
+      title: "التصويت 🗳️",
       icon: <Skull size={48} className="text-red-500" />,
       content: (
         <div className="space-y-4 text-center">
-           <p className="text-zinc-300 text-sm">في الآخر هتصوت مرتين:</p>
+           <p className="text-zinc-300 text-sm">في الآخر هتصوت على حاجتين:</p>
            
            <div className="flex flex-col gap-3">
                <div className="bg-red-900/20 p-2 rounded-xl border border-red-500/30 text-right">
                     <p className="text-red-400 font-bold text-sm">١. مين الدخيل؟</p>
-                    <p className="text-zinc-500 text-[10px]">مسموح لك تختار نفسك لو شكيت إنك الدخيل.</p>
+                    <p className="text-zinc-500 text-[10px]">اختار الشخص المختلف. (لو إنت الدخيل، ممكن تختار نفسك عشان تموه).</p>
                </div>
 
                <div className="bg-blue-900/20 p-2 rounded-xl border border-blue-500/30 text-right">
-                   <p className="text-blue-400 font-bold text-sm">٢. مين صاحبك؟</p>
-                   <p className="text-zinc-500 text-[10px]">اختار الشخص اللي معاه نفس كلمتك.</p>
+                   <p className="text-blue-400 font-bold text-sm">٢. مين صاحبك (نفس التيم)؟</p>
+                   <p className="text-zinc-500 text-[10px]">اختار الشخص اللي كان بيقول تلميحات ماشية معاك.</p>
                </div>
            </div>
         </div>
       )
     },
     {
-      title: "زرار \"مليش صاحب\" 🚫",
-      icon: <Ban size={48} className="text-purple-500" />,
+      title: "نظام النقط 🧮",
+      icon: <Calculator size={48} className="text-green-500" />,
       content: (
-        <div className="space-y-4 text-center">
-          <div className="bg-purple-900/20 p-4 rounded-2xl border border-purple-900/50">
-            <p className="text-white font-bold mb-2">لو شكيت إنك الدخيل:</p>
-            <ul className="space-y-2 text-zinc-300 text-right list-disc list-inside text-xs">
-                <li>في اختيار الصاحب، دوس <span className="text-purple-400 font-bold">أنا الدخيل / مليش صاحب</span>.</li>
-                <li>لو طلعت فعلاً الدخيل وعملت كدة، هتاخد <span className="text-green-400">+3 نقط</span> (ذكاء).</li>
-                <li>بس حاسب! لو طلعت بريء وعملت كدة، هتخسر <span className="text-red-400">-2 نقط</span> (غباء).</li>
-            </ul>
-          </div>
+        <div className="space-y-3 text-center">
+           <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700 text-right">
+               <p className="text-green-400 font-bold text-sm mb-1 border-b border-zinc-700 pb-1">👤 للمواطن الصالح (فريق A/B)</p>
+               <ul className="text-[10px] text-zinc-300 space-y-1">
+                   <li><span className="text-green-400 font-bold">+2</span> لو قفشتوا الدخيل (الأغلبية صوتت صح).</li>
+                   <li><span className="text-green-400 font-bold">+2</span> لو اخترت صاحبك صح.</li>
+                   <li><span className="text-red-400 font-bold">-2</span> لو قولت "مليش صاحب" وأنت أصلاً ليك.</li>
+               </ul>
+           </div>
+
+           <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700 text-right">
+               <p className="text-red-400 font-bold text-sm mb-1 border-b border-zinc-700 pb-1">🤫 للدخيل (فريق C)</p>
+               <ul className="text-[10px] text-zinc-300 space-y-1">
+                   <li><span className="text-red-500 font-bold">+5</span> لو محدش عرفك (Absolute Cinema!).</li>
+                   <li><span className="text-red-500 font-bold">+3</span> لو اخترت "مليش صاحب" (عرفت إنك لوحدك).</li>
+               </ul>
+           </div>
+           
+           <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700 text-right">
+               <p className="text-purple-400 font-bold text-sm mb-1 border-b border-zinc-700 pb-1">🤡 للمخادع (بونص)</p>
+               <ul className="text-[10px] text-zinc-300 space-y-1">
+                   <li><span className="text-purple-400 font-bold">+2</span> لكل صوت ضدك (حتى لو طلعت برة).</li>
+               </ul>
+           </div>
         </div>
       )
     }
   ];
 
   return (
-    <div className="h-full w-full overflow-hidden flex flex-col bg-black">
+    <div className="h-full w-full overflow-y-auto flex flex-col bg-black">
         {/* Header */}
         <div className="p-6 pb-2">
             <div className="flex items-center justify-between mb-2">
